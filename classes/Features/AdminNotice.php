@@ -4,7 +4,7 @@ namespace RemoteMediaProxy\Features;
 
 defined('ABSPATH') || exit;
 
-/** Inform authorized administrators when remote media proxying is enabled. */
+/** Show the enabled proxy status on the Media settings screen. */
 final class AdminNotice
 {
     /** Register the administrator-facing status notice. */
@@ -14,13 +14,13 @@ final class AdminNotice
     }
 
     /**
-     * Render the enabled status and settings link without exposing credentials.
+     * Render the enabled status on Media settings without exposing credentials.
      *
      * @return void
      */
     public function notice(): void
     {
-        if (!current_user_can('manage_options')) {
+        if (!current_user_can('manage_options') || get_current_screen()?->id !== 'options-media') {
             return;
         }
         $optionsMedia = OptionsMedia::getInstance();
@@ -36,8 +36,6 @@ final class AdminNotice
                 '<code>' . esc_html($options['url']) . '</code>'
             );
         }
-        $message .= ' <a href="' . esc_url(admin_url('options-media.php#remote_media_proxy_url')) . '">'
-            . esc_html__('Change settings', 'remote-media-proxy') . '</a>.';
         wp_admin_notice($message, [
             'type' => 'info',
             'dismissible' => false,
