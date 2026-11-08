@@ -21,6 +21,9 @@ Configure the source and optional HTTP Basic Auth under **Settings > Media**. Th
 * Configure missing-upload routing automatically on supported Apache layouts.
 * Use per-site settings on Multisite or supply configuration in code.
 
+== Want to contribute? ==
+Check out the Plugin [GitHub Repository](https://github.com/timohubois/remote-media-proxy/).
+
 == Installation ==
 
 1. Upload the plugin to /wp-content/plugins/remote-media-proxy/ and activate it. Composer is not required.
@@ -79,7 +82,3 @@ When enabled, the plugin requests missing media from your configured source site
 
 = 1.0.0 =
 * Initial release.
-
-== Development ==
-
-Source code, configuration examples and issues: [GitHub](https://github.com/timohubois/remote-media-proxy/).

@@ -321,14 +321,17 @@ final class ApacheRouting
     }
 
     /**
-     * Show authorized administrators relevant failures and consume pending network diagnostics.
+     * Show routing failures on Media settings or the network Plugins screen.
      *
      * @return void
      */
     public function notice(): void
     {
         $network = is_network_admin();
-        if (!current_user_can($network ? 'manage_network_options' : 'manage_options')) {
+        if (
+            !current_user_can($network ? 'manage_network_options' : 'manage_options')
+            || get_current_screen()?->id !== ($network ? 'plugins-network' : 'options-media')
+        ) {
             return;
         }
         $failures = self::$failures;
