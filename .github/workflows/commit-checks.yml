@@ -86,6 +86,13 @@ jobs:
           wp rewrite structure '/%postname%/'
       - name: Run integration checks
         run: wp --path="$RUNNER_TEMP/site" eval-file "$GITHUB_WORKSPACE/tests/integration.php"
+      - name: Check Multisite routing lifecycle
+        run: |
+          cd "$RUNNER_TEMP/site"
+          wp plugin deactivate remote-media-proxy
+          wp core multisite-convert --base=/
+          wp plugin activate remote-media-proxy --network
+          wp eval-file "$GITHUB_WORKSPACE/tests/multisite.php"
 
   plugin-check:
     runs-on: ubuntu-24.04

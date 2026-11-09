@@ -15,12 +15,16 @@ final class ApacheRouting
     /** @var array<int,string> Site-specific routing failures awaiting reporting. */
     private static array $failures = [];
 
+    /** @var boolean Whether the bootstrapped site uses WordPress's default content URL. */
+    private readonly bool $defaultContentUrl;
+
     /** @var boolean Guard against nested synchronization triggered by settings hooks. */
     private bool $syncing = false;
 
     /** Register settings, lifecycle and administrator hooks for the shared coordinator. */
     private function __construct()
     {
+        $this->defaultContentUrl = WP_CONTENT_URL === untrailingslashit((string) get_option('siteurl')) . '/wp-content';
         add_action('admin_init', [$this, 'adminInit']);
         add_action('admin_notices', [$this, 'notice']);
         add_action('network_admin_notices', [$this, 'notice']);
@@ -148,13 +152,32 @@ final class ApacheRouting
     {
         $home = wp_parse_url((string) get_option('home'));
         $uploadDir = wp_get_upload_dir();
+        $contentUrl = content_url();
+        // switch_to_blog() leaves WP_CONTENT_URL scoped to the bootstrapped site. Rebase only
+        // the uncustomized modern uploads layout to match a direct request to the target site.
+        if (
+            $this->defaultContentUrl && is_multisite() && ms_is_switched() && defined('MULTISITE')
+            && !defined('UPLOADS') && !get_site_option('ms_files_rewriting')
+            && !get_option('upload_url_path')
+            && in_array(trim((string) get_option('upload_path')), ['', 'wp-content/uploads'], true)
+            && $contentUrl === WP_CONTENT_URL
+        ) {
+            $suffix = is_main_network() && is_main_site() ? '/uploads' : '/uploads/sites/' . get_current_blog_id();
+            if (
+                $uploadDir['baseurl'] === WP_CONTENT_URL . $suffix
+                && wp_normalize_path($uploadDir['basedir']) === wp_normalize_path(WP_CONTENT_DIR . $suffix)
+            ) {
+                $contentUrl = untrailingslashit((string) get_option('siteurl')) . '/wp-content';
+                $uploadDir['baseurl'] = $contentUrl . $suffix;
+            }
+        }
         $uploads = wp_parse_url($uploadDir['baseurl']);
         $resolvedUploads = realpath($uploadDir['basedir']);
         $resolvedContent = realpath(WP_CONTENT_DIR);
         $bothResolved = $resolvedUploads !== false && $resolvedContent !== false;
         $basedir = wp_normalize_path($bothResolved ? $resolvedUploads : $uploadDir['basedir']);
         $contentDir = rtrim(wp_normalize_path($bothResolved ? $resolvedContent : WP_CONTENT_DIR), '/') . '/';
-        $content = wp_parse_url(content_url());
+        $content = wp_parse_url($contentUrl);
         $contentPath = rtrim($content['path'] ?? '', '/') . '/';
         $host = $home['host'] ?? '';
         $path = rtrim($uploads['path'] ?? '', '/') . '/';
