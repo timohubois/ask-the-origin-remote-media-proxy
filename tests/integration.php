@@ -490,13 +490,17 @@ try {
     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Populate controlled fixtures or intercepted HTTP staging files.
     file_put_contents($owned, 'opaque');
     $inode = fileinode($owned);
-    $opaque = new FileCache('ownership-test');
+    $opaque = new FileCache();
     verifyRmp(
         is_int($opaque->publish('owned', $owned)) && !file_exists($owned) && !TemporaryFile::owns($owned),
         'publication relinquishes request ownership'
     );
     $retained = $opaque->open('owned', 'text/plain', 300);
     $retainedPath = stream_get_meta_data($retained->stream)['uri'];
+    verifyRmp(
+        basename($retainedPath) === hash('sha256', serialize(['remote-media', 'owned'])) . '.tmp',
+        'fixed cache namespace preserves existing entry identities'
+    );
     verifyRmp(fileinode($retainedPath) === $inode, 'publication moves the existing inode without copying bytes');
     $retained->close();
     $foreign = $root . '/foreign';

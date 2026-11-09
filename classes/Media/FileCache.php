@@ -8,14 +8,11 @@ defined('ABSPATH') || exit;
 final class FileCache
 {
     /**
-     * Isolate consumer identities inside the installation's shared per-site cache directory.
+     * Preserve the filename extension needed by native file consumers.
      *
-     * @param string $namespace Consumer name included in entry identities.
      * @param string $extension Trusted filename extension needed by native file consumers.
      */
     public function __construct(
-        /** @var string Consumer identity included in entry hashes. */
-        private readonly string $namespace,
         /** @var string Safe filename suffix, without content-specific interpretation. */
         private readonly string $extension = 'tmp'
     ) {
@@ -147,7 +144,7 @@ final class FileCache
      */
     private function identity(string $key): string
     {
-        return hash('sha256', serialize([$this->namespace, $key])) . '.' . $this->extension;
+        return hash('sha256', serialize(['remote-media', $key])) . '.' . $this->extension;
     }
 
     /**

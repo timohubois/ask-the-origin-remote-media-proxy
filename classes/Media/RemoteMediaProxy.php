@@ -135,7 +135,7 @@ final class RemoteMediaProxy
             return null;
         }
         ['key' => $key, 'url' => $remoteUrl, 'headers' => $headers] = $remote;
-        $cache = new FileCache('remote-media', strtolower(pathinfo($relativePath, PATHINFO_EXTENSION)));
+        $cache = new FileCache(strtolower(pathinfo($relativePath, PATHINFO_EXTENSION)));
         $cached = $this->cachedUpload($cache, $key, $mimeType, $metadataOnly);
         if ($cached !== null) {
             return $cached;
@@ -192,7 +192,7 @@ final class RemoteMediaProxy
         if (!$this->isValidPath($relativePath) || $this->getMimeType($relativePath) === null) {
             return null;
         }
-        return (new FileCache('remote-media'))->stage(strtolower(pathinfo($relativePath, PATHINFO_EXTENSION)));
+        return (new FileCache())->stage(strtolower(pathinfo($relativePath, PATHINFO_EXTENSION)));
     }
 
     /**
@@ -214,7 +214,7 @@ final class RemoteMediaProxy
         if ($remote === null || file_exists($uploads['basedir'] . '/' . $relativePath)) {
             return false;
         }
-        $cache = new FileCache('remote-media', strtolower(pathinfo($relativePath, PATHINFO_EXTENSION)));
+        $cache = new FileCache(strtolower(pathinfo($relativePath, PATHINFO_EXTENSION)));
         $createdAt = $expiresAt === null ? null : $expiresAt - self::MAX_AGE;
         return $cache->publish($remote['key'], $file, $createdAt) !== null;
     }
@@ -304,7 +304,7 @@ final class RemoteMediaProxy
         if ($timeout > 0) {
             $requestArgs['timeout'] = $timeout;
         }
-        $temporary = $metadataOnly ? null : ((new FileCache('remote-media'))->stage() ?? TemporaryFile::create());
+        $temporary = $metadataOnly ? null : ((new FileCache())->stage() ?? TemporaryFile::create());
         if (!$metadataOnly && $temporary === null) {
             return null;
         }
