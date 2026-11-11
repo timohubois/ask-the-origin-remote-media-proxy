@@ -20,6 +20,8 @@ jobs:
         with:
           path: vendor
           key: ${{ runner.os }}-php-8.3-composer-${{ hashFiles('composer.lock') }}
+      - name: Validate Composer files
+        run: composer validate --strict
       - run: composer install --no-interaction --prefer-dist
       - run: composer php:lint
 
