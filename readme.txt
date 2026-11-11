@@ -22,7 +22,7 @@ Configure the source and optional HTTP Basic Auth under **Settings > Media**. Th
 * Use per-site settings on Multisite or supply configuration in code.
 
 == Want to contribute? ==
-Check out the Plugin [GitHub Repository](https://github.com/timohubois/remote-media-proxy/).
+Check out the Plugin [GitHub Repository](https://github.com/timohubois/ask-the-origin-remote-media-proxy/).
 
 == Installation ==
 
@@ -66,7 +66,7 @@ Use HTTPS and trust the configured source. Saved passwords are encrypted using W
 
 = Can I configure it in code? =
 
-Yes. Configuration constants and the ask_the_origin_options filter can override saved settings. See the [GitHub README](https://github.com/timohubois/remote-media-proxy/#configuration-in-code) for examples.
+Yes. Configuration constants and the ask_the_origin_options filter can override saved settings. See the [GitHub README](https://github.com/timohubois/ask-the-origin-remote-media-proxy/#configuration-in-code) for examples.
 
 = What happens when I disable or remove it? =
 
