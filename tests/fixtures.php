@@ -2,14 +2,14 @@
 
 /** CLI fixtures: isolated storage, intercepted upstream responses, and assertion/request helpers. */
 
-namespace RemoteMediaProxy\Tests;
+namespace AskTheOrigin\Tests;
 
 use ReflectionProperty;
 use RuntimeException;
 use Timber;
 use WP_Error;
 use WP_REST_Request;
-use RemoteMediaProxy\Media\RemoteMediaProxy;
+use AskTheOrigin\Media\RemoteMediaProxy;
 
 if (!defined('WP_CLI') || !WP_CLI) {
     exit;
@@ -26,33 +26,33 @@ if (
 if (function_exists('posix_geteuid') && posix_geteuid() === 0) {
     throw new RuntimeException('Run as a non-root user so permission failures can be tested.');
 }
-$root = sys_get_temp_dir() . '/rmp-rest-' . bin2hex(random_bytes(8));
+$root = sys_get_temp_dir() . '/ato-rest-' . bin2hex(random_bytes(8));
 // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_mkdir -- Create only isolated test-owned fixture directories.
 mkdir($root, 0700);
 // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_mkdir -- Create only isolated test-owned fixture directories.
 mkdir($root . '/uploads', 0700);
 define('WP_TEMP_DIR', $root);
-$GLOBALS['rmp_test_count'] = 0;
+$GLOBALS['ato_test_count'] = 0;
 
 /** Fail immediately with the violated contract, or count the successful assertion. */
-function verifyRmp($condition, $message)
+function verifyAto($condition, $message)
 {
     if (!$condition) {
         // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- CLI-only test diagnostics, not HTML output.
         throw new RuntimeException($message);
     }
-    ++$GLOBALS['rmp_test_count'];
+    ++$GLOBALS['ato_test_count'];
     // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CLI-only test diagnostics, not HTML output.
     echo "PASS: $message\n";
 }
 /** Simulate a new backend request without changing installation configuration. */
-function freshRmp()
+function freshAto()
 {
     (new ReflectionProperty(RemoteMediaProxy::class, 'instance'))->setValue(null, null);
     return RemoteMediaProxy::getInstance();
 }
 /** Consume an independent reader and release its handle. */
-function bytesRmp($reader)
+function bytesAto($reader)
 {
     if ($reader === null) {
         return null;
@@ -62,12 +62,12 @@ function bytesRmp($reader)
     return $data;
 }
 /** Extract the REST route for both pretty and plain permalink URLs. */
-function routeRmp($url)
+function routeAto($url)
 {
     $parts = wp_parse_url($url);
     parse_str($parts['query'] ?? '', $query);
     $path = $query['rest_route'] ?? $parts['path'];
-    $offset = strpos($path, '/remote-media-proxy/v1/');
+    $offset = strpos($path, '/ask-the-origin/v1/');
     if ($offset === false) {
         // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- CLI-only test diagnostics, not HTML output.
         throw new RuntimeException('Expected REST image URL: ' . $url);
@@ -75,31 +75,31 @@ function routeRmp($url)
     return substr($path, $offset);
 }
 /** Decode the URL query exactly as PHP would on an incoming request. */
-function recipeRmp($url)
+function recipeAto($url)
 {
     parse_str(wp_parse_url($url, PHP_URL_QUERY) ?? '', $query);
     return $query;
 }
 /** Build an isolated request with separate route and query parameter sources. */
-function requestRmp($url, $method = 'GET')
+function requestAto($url, $method = 'GET')
 {
-    $request = new WP_REST_Request($method, routeRmp($url));
-    $request->set_query_params(recipeRmp($url));
+    $request = new WP_REST_Request($method, routeAto($url));
+    $request->set_query_params(recipeAto($url));
     return $request;
 }
 /** Dispatch permissions and the route callback without emitting an HTTP response. */
-function imageRmp($url, &$expires = null, $method = 'GET')
+function imageAto($url, &$expires = null, $method = 'GET')
 {
-    $response = rest_do_request(requestRmp($url, $method));
-    $GLOBALS['last_rmp_status'] = $response->get_status();
+    $response = rest_do_request(requestAto($url, $method));
+    $GLOBALS['last_ato_status'] = $response->get_status();
     $data = $response->get_data();
     $expires = $data['expires'] ?? null;
     return $data['file'] ?? null;
 }
 /** Inspect a generated image and release its reader, returning only its dimensions. */
-function imageSizeRmp(string $url): ?array
+function imageSizeAto(string $url): ?array
 {
-    $reader = imageRmp($url);
+    $reader = imageAto($url);
     if ($reader === null) {
         return null;
     }
@@ -111,13 +111,13 @@ function imageSizeRmp(string $url): ?array
     }
 }
 
-$options = ['enabled' => true,'url' => 'https://rmp-source.example','username' => 'test','password' => 'first'];
+$options = ['enabled' => true,'url' => 'https://ato-source.example','username' => 'test','password' => 'first'];
 $optFilter = static function () use (&$options) {
     return $options;
 };
 $uploadFilter = static function ($uploads) use ($root) {
     $uploads['basedir'] = $root . '/uploads';
-    $uploads['baseurl'] = home_url('/rmp-unified-uploads');
+    $uploads['baseurl'] = home_url('/ato-unified-uploads');
     $uploads['path'] = $uploads['basedir'];
     $uploads['url'] = $uploads['baseurl'];
     $uploads['subdir'] = '';
@@ -152,7 +152,7 @@ $httpFilter = static function ($pre, $args, $url) use (&$calls, &$status, &$deri
     return ['headers' => ['content-type' => $mime,'content-length' => (string) strlen($body)],'body' => '',
         'response' => ['code' => $code,'message' => 'Fixture'],'cookies' => []];
 };
-add_filter('remote_media_proxy_options', $optFilter, PHP_INT_MAX);
+add_filter('ask_the_origin_options', $optFilter, PHP_INT_MAX);
 add_filter('upload_dir', $uploadFilter, PHP_INT_MIN);
 add_filter('pre_http_request', $httpFilter, PHP_INT_MIN, 3);
 $cachePath = null;

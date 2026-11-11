@@ -1,6 +1,6 @@
 <?php
 
-namespace RemoteMediaProxy\Media;
+namespace AskTheOrigin\Media;
 
 defined('ABSPATH') || exit;
 

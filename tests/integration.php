@@ -2,7 +2,7 @@
 
 /** CLI-only integration checks; run in a disposable WordPress installation with Timber and this plugin active. */
 
-namespace RemoteMediaProxy\Tests;
+namespace AskTheOrigin\Tests;
 
 use FilesystemIterator;
 use Imagick;
@@ -15,17 +15,17 @@ use WP_Error;
 use WP_Image_Editor_GD;
 use WP_REST_Request;
 use WP_REST_Response;
-use RemoteMediaProxy\Media\FileCache;
-use RemoteMediaProxy\Media\TemporaryFile;
-use RemoteMediaProxy\Media\MediaFile;
-use RemoteMediaProxy\Compatibility\Timber as Adapter;
-use RemoteMediaProxy\Compatibility\WordPress;
+use AskTheOrigin\Media\FileCache;
+use AskTheOrigin\Media\TemporaryFile;
+use AskTheOrigin\Media\MediaFile;
+use AskTheOrigin\Compatibility\Timber as Adapter;
+use AskTheOrigin\Compatibility\WordPress;
 
 require __DIR__ . '/fixtures.php';
 
 try {
     // Characterize Retina without extending the resize-only compatibility adapter.
-    $retinaSource = home_url('/rmp-unified-uploads/retina-local.png');
+    $retinaSource = home_url('/ato-unified-uploads/retina-local.png');
     $retinaFile = $root . '/uploads/retina-local.png';
     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Seed a physical original only inside the isolated fixture uploads.
     file_put_contents($retinaFile, $png);
@@ -34,15 +34,15 @@ try {
         $retinaUrl = Timber\ImageHelper::retina_resize($retinaSource, $factor);
         $retinaTarget = $root . '/uploads/retina-local@' . $factor . 'x.png';
         $size = is_file($retinaTarget) ? wp_getimagesize($retinaTarget) : false;
-        verifyRmp(
+        verifyAto(
             is_array($size) && [$size[0], $size[1]] === [(int) (320 * $factor), (int) (160 * $factor)],
             'native local Retina produces the expected dimensions at factor ' . $factor
         );
-        verifyRmp(
-            !str_contains($retinaUrl, '/remote-media-proxy/v1/') && count($calls) === $before,
+        verifyAto(
+            !str_contains($retinaUrl, '/ask-the-origin/v1/') && count($calls) === $before,
             'local Retina retains native URLs and makes no proxy HTTP requests'
         );
-        verifyRmp(
+        verifyAto(
             Timber\ImageHelper::retina_resize($retinaSource, $factor) === $retinaUrl,
             'native Retina reuses an existing local derivative'
         );
@@ -56,53 +56,53 @@ try {
     // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- Remove only the fixture-owned original.
     unlink($retinaFile);
     $before = count($calls);
-    verifyRmp(
+    verifyAto(
         Timber\ImageHelper::retina_resize($retinaSource, 2) === $retinaSource && count($calls) === $before,
         'remote-only Retina currently returns the original URL without retrieving or generating a derivative'
     );
     $derivativeStatus = 200;
     $body = $retinaBytes;
-    verifyRmp(
-        bytesRmp(freshRmp()->openUpload('retina-local@2x.png')) === $retinaBytes,
+    verifyAto(
+        bytesAto(freshAto()->openUpload('retina-local@2x.png')) === $retinaBytes,
         'an exact remote Retina filename remains accessible through ordinary media proxying'
     );
     $before = count($calls);
-    verifyRmp(
+    verifyAto(
         Timber\ImageHelper::retina_resize($retinaSource, 2) === $retinaSource && count($calls) === $before,
         'a server-cached Retina derivative does not currently change native missing-source resolution'
     );
     $derivativeStatus = 404;
     $body = $png;
-    verifyRmp(glob($root . '/uploads/*') === [], 'Retina characterization leaves fixture uploads empty');
+    verifyAto(glob($root . '/uploads/*') === [], 'Retina characterization leaves fixture uploads empty');
     $calls = [];
-    $proxy = freshRmp();
+    $proxy = freshAto();
     $missing = false;
     $one = $proxy->openUpload('remote.png', $missing, $deadline);
-    verifyRmp(
+    verifyAto(
         $one !== null && !$missing && $deadline > time(),
         'first remote download returns fresh bytes and a deadline'
     );
     $cachePath = stream_get_meta_data($one->stream)['uri'];
-    verifyRmp(
+    verifyAto(
         str_ends_with($cachePath, '.png') && (fileperms($cachePath) & 0777) === 0600,
         'completed download is moved into private cache'
     );
-    verifyRmp(
-        glob($root . '/remote-media-proxy-*.tmp') === [],
+    verifyAto(
+        glob($root . '/ask-the-origin-*.tmp') === [],
         'successful publication leaves no loose download or staging copy'
     );
     $two = $proxy->openUpload('remote.png', $missing, $deadline2);
     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- Compare native stream offsets of independently opened readers.
-    verifyRmp(fread($one->stream, 8) === fread($two->stream, 8), 'cached readers have independent offsets');
+    verifyAto(fread($one->stream, 8) === fread($two->stream, 8), 'cached readers have independent offsets');
     $one->close();
     $two->close();
-    verifyRmp(count($calls) === 1 && $deadline === $deadline2, 'same request reuses cache without renewing freshness');
-    $proxy = freshRmp();
-    verifyRmp(
-        bytesRmp($proxy->openUpload('remote.png')) === $png && count($calls) === 1,
+    verifyAto(count($calls) === 1 && $deadline === $deadline2, 'same request reuses cache without renewing freshness');
+    $proxy = freshAto();
+    verifyAto(
+        bytesAto($proxy->openUpload('remote.png')) === $png && count($calls) === 1,
         'new request reuses cached bodies'
     );
-    verifyRmp(
+    verifyAto(
         $proxy->statUpload('remote.png')['size'] === strlen($png) && count($calls) === 1,
         'cached bytes satisfy metadata without HEAD'
     );
@@ -110,8 +110,8 @@ try {
     chmod($root, 0500);
     clearstatcache();
     try {
-        $probe = freshRmp()->openUpload('remote.png');
-        verifyRmp(
+        $probe = freshAto()->openUpload('remote.png');
+        verifyAto(
             is_readable($cachePath) && $probe !== null,
             'readable cached bytes survive a read-only temporary parent'
         );
@@ -120,14 +120,14 @@ try {
         // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_chmod -- Force exact fixture permissions to simulate host changes.
         chmod($root, 0700);
         clearstatcache();
-        freshRmp();
+        freshAto();
     }
     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_touch -- Age fixture entries directly to test expiration without sleeps.
     touch($cachePath, time() - 250);
     clearstatcache();
-    $reader = freshRmp()->openUpload('remote.png', $missing, $remaining);
+    $reader = freshAto()->openUpload('remote.png', $missing, $remaining);
     $policy = (new ReflectionMethod(WordPress::class, 'cacheControl'))->invoke(null, $remaining);
-    verifyRmp(
+    verifyAto(
         $remaining - time() <= 50 && str_contains($policy, 'must-revalidate') && !str_contains($policy, 'stale-while'),
         'browser receives only remaining cache freshness'
     );
@@ -137,29 +137,29 @@ try {
         touch($cachePath, time() - 301);
         clearstatcache();
         $status = $failure;
-        verifyRmp(
-            freshRmp()->openUpload('remote.png', $missing) === null && !$missing,
+        verifyAto(
+            freshAto()->openUpload('remote.png', $missing) === null && !$missing,
             'expired bytes are not served after ' . $failure
         );
     }
     $status = 200;
     $body = $png . 'new';
-    verifyRmp(
-        bytesRmp(freshRmp()->openUpload('remote.png')) === $body,
+    verifyAto(
+        bytesAto(freshAto()->openUpload('remote.png')) === $body,
         'expired download refreshes with changed source bytes'
     );
     $before = count($calls);
     $options['password'] = 'second';
-    verifyRmp(
-        bytesRmp(freshRmp()->openUpload('remote.png')) === $body && count($calls) === $before + 1,
+    verifyAto(
+        bytesAto(freshAto()->openUpload('remote.png')) === $body && count($calls) === $before + 1,
         'credentials isolate persistent cache entries'
     );
     $options['password'] = 'first';
     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Populate controlled fixtures or intercepted HTTP staging files.
     file_put_contents($root . '/uploads/remote.png', 'local');
     $before = count($calls);
-    verifyRmp(
-        bytesRmp(freshRmp()->openUpload('remote.png')) === 'local' && count($calls) === $before,
+    verifyAto(
+        bytesAto(freshAto()->openUpload('remote.png')) === 'local' && count($calls) === $before,
         'physical local media takes precedence over a fresh cache'
     );
     // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- Remove only test-owned fixtures independently of WordPress deletion filters.
@@ -167,16 +167,16 @@ try {
     // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- Remove only test-owned fixtures independently of WordPress deletion filters.
     unlink($cachePath);
     $before = count($calls);
-    verifyRmp(
-        bytesRmp(freshRmp()->openUpload('remote.png')) === $body && count($calls) === $before + 1,
+    verifyAto(
+        bytesAto(freshAto()->openUpload('remote.png')) === $body && count($calls) === $before + 1,
         'host-deleted entry downloads again normally'
     );
     $directory = dirname($cachePath);
     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_chmod -- Force exact fixture permissions to simulate host changes.
     chmod($directory, 0500);
     clearstatcache();
-    $reader = freshRmp()->openUpload('fallback.png', $missing, $fallbackDeadline);
-    verifyRmp(
+    $reader = freshAto()->openUpload('fallback.png', $missing, $fallbackDeadline);
+    verifyAto(
         $reader !== null && str_ends_with(stream_get_meta_data($reader->stream)['uri'], '.tmp'),
         'unwritable cache still delivers validated request-local bytes'
     );
@@ -185,44 +185,44 @@ try {
     chmod($directory, 0700);
     clearstatcache();
     $body = $png;
-    freshRmp();
+    freshAto();
     $before = count($calls);
-    $url = Timber\ImageHelper::resize(home_url('/rmp-unified-uploads/source.png'), 200, 100);
-    verifyRmp(
-        is_string($url) && str_contains($url, '/remote-media-proxy/v1/timber/resize/'),
+    $url = Timber\ImageHelper::resize(home_url('/ato-unified-uploads/source.png'), 200, 100);
+    verifyAto(
+        is_string($url) && str_contains($url, '/ask-the-origin/v1/timber/resize/'),
         'rendering emits a signed REST image URL'
     );
-    verifyRmp(count($calls) === $before, 'cold rendering makes no derivative or original HTTP requests');
-    verifyRmp(
-        Timber\ImageHelper::resize(home_url('/rmp-unified-uploads/source.png'), 200, 100) === $url,
+    verifyAto(count($calls) === $before, 'cold rendering makes no derivative or original HTTP requests');
+    verifyAto(
+        Timber\ImageHelper::resize(home_url('/ato-unified-uploads/source.png'), 200, 100) === $url,
         'image URLs are deterministic across operations'
     );
-    $recipe = recipeRmp($url);
+    $recipe = recipeAto($url);
     $target = $recipe['target'];
-    verifyRmp(
+    verifyAto(
         !isset($recipe['password'], $recipe['username'], $recipe['url']),
         'recipe contains no source credentials or remote URL'
     );
-    $generated = imageRmp($url, $generatedDeadline);
-    verifyRmp($generated !== null, 'remote 404 generates and retains the exact derivative');
+    $generated = imageAto($url, $generatedDeadline);
+    verifyAto($generated !== null, 'remote 404 generates and retains the exact derivative');
     $generatedPath = stream_get_meta_data($generated->stream)['uri'];
     $dimensions = getimagesize($generatedPath);
-    verifyRmp($dimensions[0] === 200 && $dimensions[1] === 100, 'native operation produces the requested dimensions');
+    verifyAto($dimensions[0] === 200 && $dimensions[1] === 100, 'native operation produces the requested dimensions');
     $generated->close();
-    verifyRmp(count($calls) === $before + 2, 'generation requests the derivative then downloads the original once');
-    $unscoped = str_replace('/timber/resize/', '/resize/', routeRmp($url));
-    verifyRmp(
+    verifyAto(count($calls) === $before + 2, 'generation requests the derivative then downloads the original once');
+    $unscoped = str_replace('/timber/resize/', '/resize/', routeAto($url));
+    verifyAto(
         rest_do_request(new WP_REST_Request('GET', $unscoped))->get_status() === 404,
         'old unscoped route is not registered'
     );
-    verifyRmp(
+    verifyAto(
         rest_do_request(new WP_REST_Request(
             'GET',
-            '/remote-media-proxy/v1/wordpress/media/test'
+            '/ask-the-origin/v1/wordpress/media/test'
         ))->get_status() === 404,
         'unused integration endpoints are not exposed'
     );
-    $sourceReader = freshRmp()->openUpload('source.png');
+    $sourceReader = freshAto()->openUpload('source.png');
     $sourcePath = stream_get_meta_data($sourceReader->stream)['uri'];
     $sourceReader->close();
     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_touch -- Age fixture entries directly to test expiration without sleeps.
@@ -231,98 +231,98 @@ try {
     touch($generatedPath, time() - 301);
     clearstatcache();
     $before = count($calls);
-    freshRmp();
-    Timber\ImageHelper::resize(home_url('/rmp-unified-uploads/source.png'), 200, 100);
-    verifyRmp(count($calls) === $before, 'expired cached derivatives still cause no render-time HTTP');
-    $generated = imageRmp($url, $generatedDeadline);
-    verifyRmp(
+    freshAto();
+    Timber\ImageHelper::resize(home_url('/ato-unified-uploads/source.png'), 200, 100);
+    verifyAto(count($calls) === $before, 'expired cached derivatives still cause no render-time HTTP');
+    $generated = imageAto($url, $generatedDeadline);
+    verifyAto(
         $generated !== null && $generatedDeadline - time() <= 50,
         'generation does not stack another five minutes onto cached originals'
     );
     $generated->close();
-    verifyRmp(count($calls) === $before + 1, 'regeneration reuses the cached original');
+    verifyAto(count($calls) === $before + 1, 'regeneration reuses the cached original');
     $before = count($calls);
-    freshRmp();
-    Timber\ImageHelper::resize(home_url('/rmp-unified-uploads/source.png'), 200, 100);
-    $warmReader = imageRmp($url);
+    freshAto();
+    Timber\ImageHelper::resize(home_url('/ato-unified-uploads/source.png'), 200, 100);
+    $warmReader = imageAto($url);
     $warmReader->close();
-    verifyRmp(count($calls) === $before, 'fresh generated derivative avoids all HTTP');
+    verifyAto(count($calls) === $before, 'fresh generated derivative avoids all HTTP');
     $policy = (new ReflectionMethod(WordPress::class, 'cacheControl'))->invoke(null, $generatedDeadline, true);
-    verifyRmp(
+    verifyAto(
         str_contains($policy, 'stale-while-revalidate=60') && !str_contains($policy, 'must-revalidate'),
         'REST images enable browser-only stale-while-revalidate'
     );
     $before = count($calls);
-    verifyRmp(
-        str_ends_with(routeRmp($url), '/source.png') && strlen($recipe['sig']) === 43,
+    verifyAto(
+        str_ends_with(routeAto($url), '/source.png') && strlen($recipe['sig']) === 43,
         'readable original filename and compact full-strength signature'
     );
     $tampering = ['sig' => str_repeat('0', 43), 'width' => '201', 'height' => '101',
         'crop' => 'top', 'target' => 'different.png'];
     foreach ($tampering as $key => $value) {
         $bad = add_query_arg($key, $value, $url);
-        verifyRmp(
-            rest_do_request(requestRmp($bad))->get_status() === 403 && count($calls) === $before,
+        verifyAto(
+            rest_do_request(requestAto($bad))->get_status() === 403 && count($calls) === $before,
             'modified ' . $key . ' fails before media access'
         );
     }
-    $request = requestRmp(str_replace('/source.png?', '/other.png?', $url));
-    verifyRmp(rest_do_request($request)->get_status() === 403 && count($calls) === $before, 'source path is signed');
-    $request = requestRmp($url);
+    $request = requestAto(str_replace('/source.png?', '/other.png?', $url));
+    verifyAto(rest_do_request($request)->get_status() === 403 && count($calls) === $before, 'source path is signed');
+    $request = requestAto($url);
     $request->set_query_params(array_reverse($recipe, true));
     $data = rest_do_request($request)->get_data();
-    verifyRmp(isset($data['file']), 'query order does not change signature verification');
+    verifyAto(isset($data['file']), 'query order does not change signature verification');
     $data['file']->close();
-    $request = requestRmp($url);
+    $request = requestAto($url);
     $request->set_body_params(['width' => '999','target' => 'evil.png']);
     $data = rest_do_request($request)->get_data();
-    verifyRmp(isset($data['file']), 'body cannot override signed query values');
+    verifyAto(isset($data['file']), 'body cannot override signed query values');
     $data['file']->close();
-    $request = requestRmp($url);
+    $request = requestAto($url);
     $bad = $recipe;
     $bad['width'] = ['200'];
     $request->set_query_params($bad);
-    verifyRmp(
+    verifyAto(
         rest_do_request($request)->get_status() === 403 && count($calls) === $before,
         'array parameters rejected before media access'
     );
     $options['password'] = 'changed';
-    verifyRmp(
-        imageRmp($url) === null && $GLOBALS['last_rmp_status'] === 403 && count($calls) === $before,
+    verifyAto(
+        imageAto($url) === null && $GLOBALS['last_ato_status'] === 403 && count($calls) === $before,
         'source credential changes invalidate old signed URLs'
     );
     $options['password'] = 'first';
     $options['enabled'] = false;
-    verifyRmp(imageRmp($url) === null && count($calls) === $before, 'disabled proxy cannot serve an old signed recipe');
+    verifyAto(imageAto($url) === null && count($calls) === $before, 'disabled proxy cannot serve an old signed recipe');
     $options['enabled'] = true;
-    $request = requestRmp($url);
+    $request = requestAto($url);
     $request->set_query_params($recipe + ['_envelope' => '1']);
-    verifyRmp(
+    verifyAto(
         rest_do_request($request)->get_status() === 403 && count($calls) === $before,
         'JSON response envelopes cannot capture binary readers'
     );
-    $request = requestRmp($url);
+    $request = requestAto($url);
     $request->set_query_params($recipe + ['source' => 'wrong']);
     $response = rest_do_request($request);
     $data = $response->get_data();
-    verifyRmp(
+    verifyAto(
         $response->get_status() === 200 && count($calls) === $before,
         'query parameters cannot override signed route values'
     );
     $data['file']->close();
-    $head = imageRmp($url, $unused, 'HEAD');
-    verifyRmp($head !== null && count($calls) === $before, 'HEAD resolves the same fresh cached representation');
+    $head = imageAto($url, $unused, 'HEAD');
+    verifyAto($head !== null && count($calls) === $before, 'HEAD resolves the same fresh cached representation');
     $head->close();
     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Populate controlled fixtures or intercepted HTTP staging files.
     file_put_contents($root . '/uploads/' . $target, $png);
-    verifyRmp(
-        bytesRmp(imageRmp($url)) === $png && count($calls) === $before,
+    verifyAto(
+        bytesAto(imageAto($url)) === $png && count($calls) === $before,
         'new local derivative takes precedence through an existing REST URL'
     );
-    verifyRmp(
+    verifyAto(
         !str_contains(
-            Timber\ImageHelper::resize(home_url('/rmp-unified-uploads/source.png'), 200, 100),
-            '/remote-media-proxy/v1/'
+            Timber\ImageHelper::resize(home_url('/ato-unified-uploads/source.png'), 200, 100),
+            '/ask-the-origin/v1/'
         ),
         'existing local derivative keeps its native URL'
     );
@@ -330,78 +330,78 @@ try {
     unlink($root . '/uploads/' . $target);
     $plainFilter = static fn() => '';
     add_filter('pre_option_permalink_structure', $plainFilter);
-    $plain = Timber\ImageHelper::resize(home_url('/rmp-unified-uploads/source.png'), '177', 0, false);
+    $plain = Timber\ImageHelper::resize(home_url('/ato-unified-uploads/source.png'), '177', 0, false);
     remove_filter('pre_option_permalink_structure', $plainFilter);
-    $reader = imageRmp($plain);
-    verifyRmp(
+    $reader = imageAto($plain);
+    verifyAto(
         str_contains($plain, 'rest_route=') && $reader !== null,
         'plain permalinks, zero height, string width and false crop round-trip'
     );
     $reader->close();
     $derivativeStatus = 200;
-    $unicode = Timber\ImageHelper::resize(home_url('/rmp-unified-uploads/source-é.png'), 179, 89);
-    $reader = imageRmp($unicode);
-    verifyRmp(
-        str_contains(routeRmp($unicode), 'source-%C3%A9.png') && $reader !== null,
+    $unicode = Timber\ImageHelper::resize(home_url('/ato-unified-uploads/source-é.png'), 179, 89);
+    $reader = imageAto($unicode);
+    verifyAto(
+        str_contains(routeAto($unicode), 'source-%C3%A9.png') && $reader !== null,
         'Unicode source and target filenames round-trip'
     );
     $reader->close();
     $derivativeStatus = 404;
     foreach ([403, 500, 'error'] as $failure) {
         $derivativeStatus = $failure;
-        freshRmp();
+        freshAto();
         $before = count($calls);
-        $failureUrl = Timber\ImageHelper::resize(home_url('/rmp-unified-uploads/source.png'), 201, 101);
-        verifyRmp(count($calls) === $before, 'error-case render does not probe upstream');
-        verifyRmp(
-            imageRmp($failureUrl) === null && $GLOBALS['last_rmp_status'] === 502 && count($calls) === $before + 1,
+        $failureUrl = Timber\ImageHelper::resize(home_url('/ato-unified-uploads/source.png'), 201, 101);
+        verifyAto(count($calls) === $before, 'error-case render does not probe upstream');
+        verifyAto(
+            imageAto($failureUrl) === null && $GLOBALS['last_ato_status'] === 502 && count($calls) === $before + 1,
             'no fallback generation after derivative ' . $failure
         );
     }
     $derivativeStatus = 404;
-    verifyRmp(glob($root . '/uploads/*') === [], 'generation never writes into uploads');
+    verifyAto(glob($root . '/uploads/*') === [], 'generation never writes into uploads');
     require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
     require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
     /** Reproduce native Timber saving an unchanged image after an editor crop failure. */
-    class RmpReviewFailedCrop extends WP_Image_Editor_GD
+    class AtoReviewFailedCrop extends WP_Image_Editor_GD
     {
         public function crop($src_x, $src_y, $src_w, $src_h, $dst_w = null, $dst_h = null, $src_abs = false)
         {
-            return new WP_Error('rmp_review_crop_failure', 'Deliberate crop failure');
+            return new WP_Error('ato_review_crop_failure', 'Deliberate crop failure');
         }
     }
-    $editorFilter = static fn() => [RmpReviewFailedCrop::class];
+    $editorFilter = static fn() => [AtoReviewFailedCrop::class];
     add_filter('wp_image_editors', $editorFilter, PHP_INT_MAX);
     try {
-        freshRmp();
-        $cropUrl = Timber\ImageHelper::resize(home_url('/rmp-unified-uploads/source.png'), 155, 77);
-        $probe = imageRmp($cropUrl);
-        verifyRmp(
-            $probe === null && $GLOBALS['last_rmp_status'] === 502,
+        freshAto();
+        $cropUrl = Timber\ImageHelper::resize(home_url('/ato-unified-uploads/source.png'), 155, 77);
+        $probe = imageAto($cropUrl);
+        verifyAto(
+            $probe === null && $GLOBALS['last_ato_status'] === 502,
             'failed native cropping cannot publish the original as a derivative'
         );
         $probe?->close();
     } finally {
         remove_filter('wp_image_editors', $editorFilter, PHP_INT_MAX);
     }
-    verifyRmp(
-        imageSizeRmp($cropUrl) === [155, 77],
+    verifyAto(
+        imageSizeAto($cropUrl) === [155, 77],
         'failed cropping does not poison the cache and a later attempt can recover'
     );
     $dimensionCases = [[0, 81, 162, 81], [161, 0, 161, 81], [320, 160, 320, 160],
         [401, 201, 401, 201], [101.6, 50.6, 102, 51]];
     foreach ($dimensionCases as [$w, $h, $ew, $eh]) {
-        freshRmp();
-        $dimensionUrl = Timber\ImageHelper::resize(home_url('/rmp-unified-uploads/source.png'), $w, $h, false);
-        verifyRmp(
-            imageSizeRmp($dimensionUrl) === [$ew, $eh],
+        freshAto();
+        $dimensionUrl = Timber\ImageHelper::resize(home_url('/ato-unified-uploads/source.png'), $w, $h, false);
+        verifyAto(
+            imageSizeAto($dimensionUrl) === [$ew, $eh],
             'native PNG dimensions survive inference, no-op, upscaling and rounding'
         );
     }
     foreach (['default','center','top','bottom','left','right','top-center','bottom-center'] as $crop) {
-        freshRmp();
-        $reader = imageRmp(Timber\ImageHelper::resize(home_url('/rmp-unified-uploads/source.png'), 101, 51, $crop));
-        verifyRmp($reader !== null, 'native crop position remains supported: ' . $crop);
+        freshAto();
+        $reader = imageAto(Timber\ImageHelper::resize(home_url('/ato-unified-uploads/source.png'), 101, 51, $crop));
+        verifyAto($reader !== null, 'native crop position remains supported: ' . $crop);
         $reader?->close();
     }
     $probeFile = TemporaryFile::create();
@@ -411,19 +411,19 @@ try {
     $adapter = (new ReflectionClass(Adapter::class))->newInstanceWithoutConstructor();
     // This deliberately non-removable buffer lasts until this isolated CLI process exits.
     ob_start(null, 0, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE);
-    $upperRequest = requestRmp(str_replace('/timber/resize/', '/TIMBER/RESIZE/', $url));
+    $upperRequest = requestAto(str_replace('/timber/resize/', '/TIMBER/RESIZE/', $url));
     $upperResponse = rest_do_request($upperRequest);
     $upperData = $upperResponse->get_data();
     $upperServed = $adapter->serveImage(false, $upperResponse, $upperRequest);
-    verifyRmp(
+    verifyAto(
         !$upperServed && $upperResponse->get_status() === 500 && wp_json_encode($upperResponse->get_data()) !== false,
         'uppercase routes reach binary handling and produce serializable delivery errors'
     );
     ($upperData['file'] ?? null)?->close();
     $response = new WP_REST_Response(['file' => $probeReader,'expires' => time() + 300]);
-    $request = new WP_REST_Request('GET', '/remote-media-proxy/v1/timber/resize/source.png');
+    $request = new WP_REST_Request('GET', '/ask-the-origin/v1/timber/resize/source.png');
     $served = $adapter->serveImage(false, $response, $request);
-    verifyRmp(
+    verifyAto(
         !$served
         && $response->get_status() === 500
         && !is_resource($probeReader->stream)
@@ -436,10 +436,10 @@ try {
     imagejpeg($jpeg);
     $body = ob_get_clean();
     imagedestroy($jpeg);
-    freshRmp();
-    $jpegUrl = Timber\ImageHelper::resize(home_url('/rmp-unified-uploads/source.jpg'), 200, 100);
-    $jpegReader = imageRmp($jpegUrl);
-    verifyRmp(
+    freshAto();
+    $jpegUrl = Timber\ImageHelper::resize(home_url('/ato-unified-uploads/source.jpg'), 200, 100);
+    $jpegReader = imageAto($jpegUrl);
+    verifyAto(
         $jpegReader !== null
         && wp_getimagesize(stream_get_meta_data($jpegReader->stream)['uri'])['mime'] === 'image/jpeg',
         'native JPEG generation works with direct staging files'
@@ -447,13 +447,13 @@ try {
     $jpegReader->close();
     $convert = static fn($formats) => ['image/jpeg' => 'image/webp'];
     add_filter('image_editor_output_format', $convert, PHP_INT_MAX);
-    freshRmp();
-    $converted = Timber\ImageHelper::resize(home_url('/rmp-unified-uploads/source.jpg'), 123, 61);
-    $convertedReader = imageRmp($converted);
+    freshAto();
+    $converted = Timber\ImageHelper::resize(home_url('/ato-unified-uploads/source.jpg'), 123, 61);
+    $convertedReader = imageAto($converted);
     remove_filter('image_editor_output_format', $convert, PHP_INT_MAX);
-    verifyRmp($convertedReader === null, 'unexpected editor format cannot masquerade as the requested JPEG');
-    verifyRmp(
-        glob($directory . '/remote-media-proxy-*') === [],
+    verifyAto($convertedReader === null, 'unexpected editor format cannot masquerade as the requested JPEG');
+    verifyAto(
+        glob($directory . '/ask-the-origin-*') === [],
         'unexpected editor output leaves no staging siblings behind'
     );
     if (class_exists(Imagick::class)) {
@@ -467,21 +467,21 @@ try {
         }
         $animation->setImageFormat('gif');
         $body = $animation->getImagesBlob();
-        freshRmp();
-        $gifUrl = Timber\ImageHelper::resize(home_url('/rmp-unified-uploads/source.gif'), 200, 100);
-        $gifReader = imageRmp($gifUrl);
-        verifyRmp($gifReader !== null, 'native GIF generation has a correctly suffixed cached source');
+        freshAto();
+        $gifUrl = Timber\ImageHelper::resize(home_url('/ato-unified-uploads/source.gif'), 200, 100);
+        $gifReader = imageAto($gifUrl);
+        verifyAto($gifReader !== null, 'native GIF generation has a correctly suffixed cached source');
         $gif = new Imagick(stream_get_meta_data($gifReader->stream)['uri']);
-        verifyRmp(
+        verifyAto(
             $gif->getNumberImages() === 2 && $gif->getImageWidth() === 200 && $gif->getImageHeight() === 100,
             'native animated GIF retains both resized frames'
         );
         $gifReader->close();
         foreach ([[0,81,162,81],[161,0,161,81],[101.6,50.6,101,50]] as [$w,$h,$ew,$eh]) {
-            freshRmp();
-            $dimensionUrl = Timber\ImageHelper::resize(home_url('/rmp-unified-uploads/source.gif'), $w, $h);
-            verifyRmp(
-                imageSizeRmp($dimensionUrl) === [$ew, $eh],
+            freshAto();
+            $dimensionUrl = Timber\ImageHelper::resize(home_url('/ato-unified-uploads/source.gif'), $w, $h);
+            verifyAto(
+                imageSizeAto($dimensionUrl) === [$ew, $eh],
                 'native animated GIF preserves inference and integer coercion'
             );
         }
@@ -491,24 +491,24 @@ try {
     file_put_contents($owned, 'opaque');
     $inode = fileinode($owned);
     $opaque = new FileCache();
-    verifyRmp(
+    verifyAto(
         is_int($opaque->publish('owned', $owned)) && !file_exists($owned) && !TemporaryFile::owns($owned),
         'publication relinquishes request ownership'
     );
     $retained = $opaque->open('owned', 'text/plain', 300);
     $retainedPath = stream_get_meta_data($retained->stream)['uri'];
-    verifyRmp(
-        basename($retainedPath) === hash('sha256', serialize(['remote-media', 'owned'])) . '.tmp',
-        'fixed cache namespace preserves existing entry identities'
+    verifyAto(
+        basename($retainedPath) === hash('sha256', serialize(['ask-the-origin', 'owned'])) . '.tmp',
+        'cache entries use the product identity'
     );
-    verifyRmp(fileinode($retainedPath) === $inode, 'publication moves the existing inode without copying bytes');
+    verifyAto(fileinode($retainedPath) === $inode, 'publication moves the existing inode without copying bytes');
     $retained->close();
     $foreign = $root . '/foreign';
     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Populate controlled fixtures or intercepted HTTP staging files.
     file_put_contents($foreign, 'untouched');
     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_chmod -- Force exact fixture permissions to simulate host changes.
     chmod($foreign, 0600);
-    verifyRmp(
+    verifyAto(
         // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Read only this local fixture, never a remote URL.
         $opaque->publish('foreign', $foreign) === null && file_get_contents($foreign) === 'untouched',
         'cache cannot consume unowned files'
@@ -518,11 +518,11 @@ try {
     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Populate controlled fixtures or intercepted HTTP staging files.
     file_put_contents($alternative, 'alternate');
     TemporaryFile::remove($variant);
-    verifyRmp(
+    verifyAto(
         !file_exists($variant) && !file_exists($alternative),
         'native format variants are cleaned without per-operation directories'
     );
-    verifyRmp(glob($directory . '/.*.lock') === [], 'no lock files are created');
+    verifyAto(glob($directory . '/.*.lock') === [], 'no lock files are created');
     $odd = $root . '/[working]*?';
     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_mkdir -- Create only isolated test-owned fixture directories.
     mkdir($odd, 0700);
@@ -531,21 +531,21 @@ try {
     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Populate controlled fixtures or intercepted HTTP staging files.
     file_put_contents($alternative, 'alternate');
     TemporaryFile::remove($variant);
-    verifyRmp(
+    verifyAto(
         !file_exists($variant) && !file_exists($alternative),
         'staging cleanup handles directory glob metacharacters safely'
     );
     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- Remove only test-owned fixtures independently of WordPress deletion filters.
     rmdir($odd);
     TemporaryFile::cleanup();
-    verifyRmp(
+    verifyAto(
         is_file($retainedPath)
-        && glob($root . '/remote-media-proxy-*.tmp') === []
-        && glob($root . '/remote-media-proxy-*.tmp.d') === [],
+        && glob($root . '/ask-the-origin-*.tmp') === []
+        && glob($root . '/ask-the-origin-*.tmp.d') === [],
         'shutdown cleanup removes only remaining working files and workspaces'
     );
     // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CLI-only test diagnostics, not HTML output.
-    echo 'PASSED ' . $GLOBALS['rmp_test_count'] . ' checks; Timber ' . Timber\Timber::$version . "\n";
+    echo 'PASSED ' . $GLOBALS['ato_test_count'] . ' checks; Timber ' . Timber\Timber::$version . "\n";
 } finally {
     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_chmod -- Force exact fixture permissions to simulate host changes.
     chmod($root, 0700);
@@ -554,7 +554,7 @@ try {
         chmod($directory, 0700);
     }
     TemporaryFile::cleanup();
-    remove_filter('remote_media_proxy_options', $optFilter, PHP_INT_MAX);
+    remove_filter('ask_the_origin_options', $optFilter, PHP_INT_MAX);
     remove_filter('upload_dir', $uploadFilter, PHP_INT_MIN);
     remove_filter('pre_http_request', $httpFilter, PHP_INT_MIN);
     $iterator = new RecursiveIteratorIterator(

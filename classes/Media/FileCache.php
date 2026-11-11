@@ -1,6 +1,6 @@
 <?php
 
-namespace RemoteMediaProxy\Media;
+namespace AskTheOrigin\Media;
 
 defined('ABSPATH') || exit;
 
@@ -43,7 +43,7 @@ final class FileCache
             return null;
         }
         $identity = hash_hmac('sha256', serialize([ABSPATH, home_url(), get_current_blog_id()]), wp_salt('auth'));
-        $directory = $base . 'remote-media-proxy-' . substr($identity, 0, 32);
+        $directory = $base . 'ask-the-origin-' . substr($identity, 0, 32);
         if (!file_exists($directory) && $create) {
             $mask = umask(0077);
             try {
@@ -144,7 +144,7 @@ final class FileCache
      */
     private function identity(string $key): string
     {
-        return hash('sha256', serialize(['remote-media', $key])) . '.' . $this->extension;
+        return hash('sha256', serialize(['ask-the-origin', $key])) . '.' . $this->extension;
     }
 
     /**

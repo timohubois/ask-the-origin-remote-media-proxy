@@ -1,4 +1,4 @@
-=== Remote Media Proxy ===
+=== Ask the Origin – Remote Media Proxy ===
 Contributors: timohubois
 Tags: uploads, development, media, proxy
 Requires at least: 7.0
@@ -12,7 +12,7 @@ Use production media on local and staging WordPress sites without copying the up
 
 == Description ==
 
-Remote Media Proxy loads missing media from a source site instead of copying the uploads library. Existing local files take precedence. Retrieved files are cached privately, never added to uploads.
+Ask the Origin loads missing media from a source site instead of copying the uploads library. Existing local files take precedence. Retrieved files are cached privately, never added to uploads.
 
 Configure the source and optional HTTP Basic Auth under **Settings > Media**. The plugin is disabled by default; it does not enable itself based on the WordPress environment type. No plugin is needed on the source site.
 
@@ -26,7 +26,7 @@ Check out the Plugin [GitHub Repository](https://github.com/timohubois/remote-me
 
 == Installation ==
 
-1. Upload the plugin to /wp-content/plugins/remote-media-proxy/ and activate it. Composer is not required.
+1. Upload the plugin to /wp-content/plugins/ask-the-origin-remote-media-proxy/ and activate it. Composer is not required.
 2. In **Settings > Media**, enter the source site base URL and any Basic Auth credentials, then enable the proxy.
 3. Review server routing and resolve any warning shown in the admin.
 
@@ -66,7 +66,7 @@ Use HTTPS and trust the configured source. Saved passwords are encrypted using W
 
 = Can I configure it in code? =
 
-Yes. Configuration constants and the remote_media_proxy_options filter can override saved settings. See the [GitHub README](https://github.com/timohubois/remote-media-proxy/#configuration-in-code) for examples.
+Yes. Configuration constants and the ask_the_origin_options filter can override saved settings. See the [GitHub README](https://github.com/timohubois/remote-media-proxy/#configuration-in-code) for examples.
 
 = What happens when I disable or remove it? =
 

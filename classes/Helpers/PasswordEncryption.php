@@ -1,6 +1,6 @@
 <?php
 
-namespace RemoteMediaProxy\Helpers;
+namespace AskTheOrigin\Helpers;
 
 defined('ABSPATH') || exit;
 
@@ -83,7 +83,7 @@ final class PasswordEncryption
             'sha256',
             \AUTH_KEY,
             SODIUM_CRYPTO_SECRETBOX_KEYBYTES,
-            'remote-media-proxy:password:v1:site:' . get_current_blog_id(),
+            'ask-the-origin:password:v1:site:' . get_current_blog_id(),
             \AUTH_SALT
         );
     }

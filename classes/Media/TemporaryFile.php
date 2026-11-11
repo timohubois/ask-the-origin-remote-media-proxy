@@ -1,6 +1,6 @@
 <?php
 
-namespace RemoteMediaProxy\Media;
+namespace AskTheOrigin\Media;
 
 defined('ABSPATH') || exit;
 
@@ -66,7 +66,7 @@ final class TemporaryFile
         if (!is_string($token) || !preg_match('/^[a-zA-Z0-9]{32}$/D', $token)) {
             return null;
         }
-        $file = $directory . 'remote-media-proxy-' . $token . '.' . $extension;
+        $file = $directory . 'ask-the-origin-' . $token . '.' . $extension;
         $mask = umask(0077);
         try {
             // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Exclusive allocation proves ownership and permits exact editor extensions, unlike wp_tempnam().

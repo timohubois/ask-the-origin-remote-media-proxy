@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ruleset name="remote-media-proxy">
+<ruleset name="ask-the-origin-remote-media-proxy">
     <description>PSR-12 with WordPress security, database and translation checks.</description>
     <file>./</file>
     <exclude-pattern>*/vendor/*</exclude-pattern>
@@ -16,7 +16,7 @@
     <rule ref="WordPress.WP.AlternativeFunctions"/>
     <rule ref="WordPress.PHP.DevelopmentFunctions"/>
     <rule ref="WordPress.WP.I18n">
-        <properties><property name="text_domain" type="array"><element value="remote-media-proxy"/></property></properties>
+        <properties><property name="text_domain" type="array"><element value="ask-the-origin-remote-media-proxy"/></property></properties>
     </rule>
     <!-- Require complete PHPDoc for application classes, methods and properties. -->
     <rule ref="Squiz.Commenting.DocCommentAlignment">

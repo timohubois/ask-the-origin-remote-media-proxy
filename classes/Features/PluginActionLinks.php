@@ -1,6 +1,6 @@
 <?php
 
-namespace RemoteMediaProxy\Features;
+namespace AskTheOrigin\Features;
 
 defined('ABSPATH') || exit;
 
@@ -10,7 +10,7 @@ final class PluginActionLinks
     /** Register the action-link filter for this plugin only. */
     public function __construct()
     {
-        add_filter('plugin_action_links_' . plugin_basename(REMOTE_MEDIA_PROXY_PLUGIN_FILE), [$this, 'links']);
+        add_filter('plugin_action_links_' . plugin_basename(ASK_THE_ORIGIN_PLUGIN_FILE), [$this, 'links']);
     }
 
     /**
@@ -21,8 +21,8 @@ final class PluginActionLinks
      */
     public function links(array $links): array
     {
-        $links[] = '<a href="' . esc_url(admin_url('options-media.php#remote_media_proxy_url')) . '">'
-            . esc_html__('Settings', 'remote-media-proxy') . '</a>';
+        $links[] = '<a href="' . esc_url(admin_url('options-media.php#ask_the_origin_url')) . '">'
+            . esc_html__('Settings', 'ask-the-origin-remote-media-proxy') . '</a>';
         return $links;
     }
 }

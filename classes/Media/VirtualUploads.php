@@ -1,6 +1,6 @@
 <?php
 
-namespace RemoteMediaProxy\Media;
+namespace AskTheOrigin\Media;
 
 defined('ABSPATH') || exit;
 
@@ -81,7 +81,7 @@ final class VirtualUploads
      */
     private static function access(string $uri, bool $metadataOnly): MediaFile|array|null
     {
-        if (!preg_match('#^remotemediaproxy://attachment/([1-9][0-9]*)/([1-9][0-9]*)/([^/?\#]+)$#D', $uri, $matches)) {
+        if (!preg_match('#^asktheorigin://attachment/([1-9][0-9]*)/([1-9][0-9]*)/([^/?\#]+)$#D', $uri, $matches)) {
             return null;
         }
         $blogId = (int) $matches[1];

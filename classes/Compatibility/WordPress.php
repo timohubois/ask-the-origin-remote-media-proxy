@@ -1,10 +1,10 @@
 <?php
 
-namespace RemoteMediaProxy\Compatibility;
+namespace AskTheOrigin\Compatibility;
 
-use RemoteMediaProxy\Media\MediaFile;
-use RemoteMediaProxy\Media\RemoteMediaProxy;
-use RemoteMediaProxy\Media\VirtualUploads;
+use AskTheOrigin\Media\MediaFile;
+use AskTheOrigin\Media\RemoteMediaProxy;
+use AskTheOrigin\Media\VirtualUploads;
 
 defined('ABSPATH') || exit;
 
@@ -27,7 +27,7 @@ final class WordPress
      */
     public function proxyAttachedFile(mixed $file, mixed $attachmentId): mixed
     {
-        if (!is_string($file) || !is_numeric($attachmentId) || !empty($_SERVER['HTTP_X_REMOTE_MEDIA_PROXY'])) {
+        if (!is_string($file) || !is_numeric($attachmentId) || !empty($_SERVER['HTTP_X_ASK_THE_ORIGIN'])) {
             return $file;
         }
         return VirtualUploads::resolve($file, (int) $attachmentId) ?? $file;
@@ -42,7 +42,7 @@ final class WordPress
     public function proxyUpload(string $template): string
     {
         $requestMethod = sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD'] ?? ''));
-        if ($requestMethod !== 'GET' || headers_sent() || !empty($_SERVER['HTTP_X_REMOTE_MEDIA_PROXY'])) {
+        if ($requestMethod !== 'GET' || headers_sent() || !empty($_SERVER['HTTP_X_ASK_THE_ORIGIN'])) {
             return $template;
         }
         $uploads = wp_get_upload_dir();

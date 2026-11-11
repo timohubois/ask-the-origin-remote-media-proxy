@@ -1,6 +1,6 @@
 <?php
 
-namespace RemoteMediaProxy\Features;
+namespace AskTheOrigin\Features;
 
 defined('ABSPATH') || exit;
 
@@ -28,18 +28,18 @@ final class AdminNotice
         if (!$options['enabled']) {
             return;
         }
-        $message = esc_html__('Remote Media Proxy is enabled.', 'remote-media-proxy');
+        $message = esc_html__('Ask the Origin is enabled.', 'ask-the-origin-remote-media-proxy');
         if (is_string($options['url']) && $optionsMedia->isValidUrl($options['url'])) {
             $message .= ' ' . sprintf(
                 /* translators: %s: Validated remote site base URL wrapped in a code element. */
-                esc_html__('This site loads missing media from %s.', 'remote-media-proxy'),
+                esc_html__('This site loads missing media from %s.', 'ask-the-origin-remote-media-proxy'),
                 '<code>' . esc_html($options['url']) . '</code>'
             );
         }
         wp_admin_notice($message, [
             'type' => 'info',
             'dismissible' => false,
-            'id' => 'remote-media-proxy-enabled',
+            'id' => 'ask-the-origin-enabled',
         ]);
     }
 }

@@ -1,8 +1,8 @@
 <?php
 
-namespace RemoteMediaProxy\Features;
+namespace AskTheOrigin\Features;
 
-use RemoteMediaProxy\Helpers\PasswordEncryption;
+use AskTheOrigin\Helpers\PasswordEncryption;
 
 defined('ABSPATH') || exit;
 
@@ -10,14 +10,14 @@ defined('ABSPATH') || exit;
 final class OptionsMedia
 {
     /** @var string Site option and settings-section identifier. */
-    public const string OPTION_NAME = 'remote_media_proxy';
+    public const string OPTION_NAME = 'ask_the_origin';
 
     /** @var array<string,string> Option fields mapped to their configuration constant names. */
     private const array CONFIG_CONSTANTS = [
-        'enabled' => 'REMOTE_MEDIA_PROXY_ENABLED',
-        'url' => 'REMOTE_MEDIA_PROXY_URL',
-        'username' => 'REMOTE_MEDIA_PROXY_USERNAME',
-        'password' => 'REMOTE_MEDIA_PROXY_PASSWORD',
+        'enabled' => 'ASK_THE_ORIGIN_ENABLED',
+        'url' => 'ASK_THE_ORIGIN_URL',
+        'username' => 'ASK_THE_ORIGIN_USERNAME',
+        'password' => 'ASK_THE_ORIGIN_PASSWORD',
     ];
 
     /** @var self|null Shared settings feature for this request. */
@@ -48,7 +48,7 @@ final class OptionsMedia
     {
         $options = get_option(self::OPTION_NAME, []);
         $options = is_array($options) ? $options : [];
-        if (!defined('REMOTE_MEDIA_PROXY_PASSWORD') && array_key_exists('password', $options)) {
+        if (!defined('ASK_THE_ORIGIN_PASSWORD') && array_key_exists('password', $options)) {
             $options['password'] = PasswordEncryption::decrypt($options['password']);
         }
         foreach (self::CONFIG_CONSTANTS as $name => $constant) {
@@ -56,7 +56,7 @@ final class OptionsMedia
                 $options[$name] = constant($constant);
             }
         }
-        $options = apply_filters('remote_media_proxy_options', $options);
+        $options = apply_filters('ask_the_origin_options', $options);
         $options = is_array($options) ? $options : [];
         $options = wp_parse_args($options, ['enabled' => false, 'url' => '', 'username' => '', 'password' => '']);
         $options['enabled'] = in_array($options['enabled'], [true, 1, '1'], true);
@@ -76,29 +76,29 @@ final class OptionsMedia
         ]);
         add_settings_section(
             self::OPTION_NAME,
-            __('Remote Media Proxy', 'remote-media-proxy'),
+            __('Ask the Origin – Remote Media Proxy', 'ask-the-origin-remote-media-proxy'),
             $this->renderDescription(...),
             'media'
         );
         $fields = [
             'enabled' => [
-                'label' => __('Status', 'remote-media-proxy'),
+                'label' => __('Status', 'ask-the-origin-remote-media-proxy'),
                 'type' => 'checkbox',
             ],
             'url' => [
-                'label' => __('Remote site URL', 'remote-media-proxy'),
+                'label' => __('Remote site URL', 'ask-the-origin-remote-media-proxy'),
                 'type' => 'url',
                 'placeholder' => preg_replace('#^(https?://)#i', '$1example.', home_url()),
             ],
             'username' => [
-                'label' => __('Basic Auth username', 'remote-media-proxy'),
+                'label' => __('Basic Auth username', 'ask-the-origin-remote-media-proxy'),
                 'type' => 'text',
-                'placeholder' => __('Optional username', 'remote-media-proxy'),
+                'placeholder' => __('Optional username', 'ask-the-origin-remote-media-proxy'),
             ],
             'password' => [
-                'label' => __('Basic Auth password', 'remote-media-proxy'),
+                'label' => __('Basic Auth password', 'ask-the-origin-remote-media-proxy'),
                 'type' => 'password',
-                'placeholder' => __('Optional password', 'remote-media-proxy'),
+                'placeholder' => __('Optional password', 'ask-the-origin-remote-media-proxy'),
             ],
         ];
         foreach ($fields as $name => $field) {
@@ -131,8 +131,11 @@ final class OptionsMedia
         if ($url !== '' && !$this->isValidUrl($url)) {
             add_settings_error(
                 self::OPTION_NAME,
-                'remote_media_proxy_url',
-                __('Use an HTTP or HTTPS site URL without credentials, query or fragment.', 'remote-media-proxy')
+                'ask_the_origin_url',
+                __(
+                    'Use an HTTP or HTTPS site URL without credentials, query or fragment.',
+                    'ask-the-origin-remote-media-proxy'
+                )
             );
             $url = is_string($previousOptions['url'] ?? null) ? $previousOptions['url'] : '';
         }
@@ -143,10 +146,10 @@ final class OptionsMedia
         } catch (\Throwable) {
             add_settings_error(
                 self::OPTION_NAME,
-                'remote_media_proxy_password',
+                'ask_the_origin_password',
                 __(
                     'Password encryption failed. Check WordPress keys and Sodium; plugin settings were not changed.',
-                    'remote-media-proxy'
+                    'ask-the-origin-remote-media-proxy'
                 )
             );
             return $previousOptions;
@@ -182,7 +185,7 @@ final class OptionsMedia
      */
     private function sanitizePassword(array $input, mixed $previous): mixed
     {
-        if (!defined('REMOTE_MEDIA_PROXY_PASSWORD') && array_key_exists('password', $input)) {
+        if (!defined('ASK_THE_ORIGIN_PASSWORD') && array_key_exists('password', $input)) {
             $password = $input['password'];
             if ($password === '' || $password === null) {
                 return null;
@@ -229,7 +232,7 @@ final class OptionsMedia
             <?php
             esc_html_e(
                 'Load missing media from your source site without copying files locally.',
-                'remote-media-proxy'
+                'ask-the-origin-remote-media-proxy'
             );
             ?>
         </p>
@@ -256,16 +259,16 @@ final class OptionsMedia
         }
         ?>
         <?php if ($name === 'enabled') : ?>
-            <label for="remote_media_proxy_enabled">
+            <label for="ask_the_origin_enabled">
                 <input
                     type="checkbox"
-                    id="remote_media_proxy_enabled"
-                    name="remote_media_proxy[enabled]"
+                    id="ask_the_origin_enabled"
+                    name="ask_the_origin[enabled]"
                     value="1"
                     <?php checked($options['enabled']); ?>
                     <?php disabled($locked); ?>
                 >
-                <?php esc_html_e('Enable Remote Media Proxy', 'remote-media-proxy'); ?>
+                <?php esc_html_e('Enable Ask the Origin', 'ask-the-origin-remote-media-proxy'); ?>
             </label>
         <?php else : ?>
             <input
@@ -284,7 +287,7 @@ final class OptionsMedia
                 <?php
                 printf(
                     /* translators: %s: Configuration constant name. */
-                    esc_html__('Configured by %s.', 'remote-media-proxy'),
+                    esc_html__('Configured by %s.', 'ask-the-origin-remote-media-proxy'),
                     esc_html($constant)
                 );
                 ?>
@@ -295,7 +298,7 @@ final class OptionsMedia
                 <?php
                 esc_html_e(
                     'The saved password cannot be read. Re-enter it; saving an empty field removes it.',
-                    'remote-media-proxy'
+                    'ask-the-origin-remote-media-proxy'
                 );
                 ?>
             </p>

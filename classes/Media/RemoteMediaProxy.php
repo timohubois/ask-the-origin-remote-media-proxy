@@ -1,8 +1,8 @@
 <?php
 
-namespace RemoteMediaProxy\Media;
+namespace AskTheOrigin\Media;
 
-use RemoteMediaProxy\Features\OptionsMedia;
+use AskTheOrigin\Features\OptionsMedia;
 
 defined('ABSPATH') || exit;
 
@@ -228,7 +228,7 @@ final class RemoteMediaProxy
      */
     private function remoteIdentity(string $relativePath, string $mimeType): ?array
     {
-        if (!empty($_SERVER['HTTP_X_REMOTE_MEDIA_PROXY'])) {
+        if (!empty($_SERVER['HTTP_X_ASK_THE_ORIGIN'])) {
             return null;
         }
         $options = $this->getConfiguredOptions();
@@ -243,7 +243,7 @@ final class RemoteMediaProxy
         }
         $url = rtrim($options['url'], '/') . '/' . trim($uploadsPath, '/') . '/'
             . implode('/', array_map(rawurlencode(...), explode('/', $relativePath)));
-        $headers = ['Accept-Encoding' => 'identity', 'X-Remote-Media-Proxy' => '1'];
+        $headers = ['Accept-Encoding' => 'identity', 'X-Ask-The-Origin' => '1'];
         if ($options['username'] !== '') {
             $headers['Authorization'] = 'Basic ' . base64_encode($options['username'] . ':' . $options['password']);
         }

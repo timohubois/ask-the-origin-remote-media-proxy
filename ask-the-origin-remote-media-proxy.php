@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Plugin Name:       Remote Media Proxy
+ * Plugin Name:       Ask the Origin – Remote Media Proxy
  * Plugin URI:        https://github.com/timohubois/remote-media-proxy/
  * Description:       Use production media on local and staging WordPress sites without copying the uploads library.
  * Version:           1.0.0
@@ -9,17 +9,17 @@
  * Requires PHP:      8.3
  * Author:            Timo Hubois
  * Author URI:        https://pixelsaft.wtf
- * Text Domain:       remote-media-proxy
+ * Text Domain:       ask-the-origin-remote-media-proxy
  * License:           GPLv3 or later
  * License URI:       https://www.gnu.org/licenses/gpl-3.0.html
  */
 
-namespace RemoteMediaProxy;
+namespace AskTheOrigin;
 
 defined('ABSPATH') || exit;
 
-if (!defined('REMOTE_MEDIA_PROXY_PLUGIN_FILE')) {
-    define('REMOTE_MEDIA_PROXY_PLUGIN_FILE', __FILE__);
+if (!defined('ASK_THE_ORIGIN_PLUGIN_FILE')) {
+    define('ASK_THE_ORIGIN_PLUGIN_FILE', __FILE__);
 }
 
 if (is_file(__DIR__ . '/vendor/autoload.php')) {
@@ -38,6 +38,6 @@ if (is_file(__DIR__ . '/vendor/autoload.php')) {
     });
 }
 
-register_activation_hook(REMOTE_MEDIA_PROXY_PLUGIN_FILE, [Plugin::class, 'onPluginActivation']);
-register_deactivation_hook(REMOTE_MEDIA_PROXY_PLUGIN_FILE, [Plugin::class, 'onPluginDeactivation']);
+register_activation_hook(ASK_THE_ORIGIN_PLUGIN_FILE, [Plugin::class, 'onPluginActivation']);
+register_deactivation_hook(ASK_THE_ORIGIN_PLUGIN_FILE, [Plugin::class, 'onPluginDeactivation']);
 add_action('plugins_loaded', [Plugin::class, 'init']);

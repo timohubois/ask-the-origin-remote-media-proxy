@@ -1,12 +1,12 @@
 <?php
 
-namespace RemoteMediaProxy\Compatibility;
+namespace AskTheOrigin\Compatibility;
 
-use RemoteMediaProxy\Media\StreamWrapper;
-use RemoteMediaProxy\Media\RemoteMediaProxy;
-use RemoteMediaProxy\Media\TemporaryFile;
-use RemoteMediaProxy\Media\MediaFile;
-use RemoteMediaProxy\Features\OptionsMedia;
+use AskTheOrigin\Media\StreamWrapper;
+use AskTheOrigin\Media\RemoteMediaProxy;
+use AskTheOrigin\Media\TemporaryFile;
+use AskTheOrigin\Media\MediaFile;
+use AskTheOrigin\Features\OptionsMedia;
 use WP_Error;
 use WP_HTTP_Response;
 use WP_REST_Request;
@@ -21,7 +21,7 @@ defined('ABSPATH') || exit;
 final class Timber
 {
     /** Shared API namespace; each integration registers its own explicit routes. */
-    private const string REST_NAMESPACE = 'remote-media-proxy/v1';
+    private const string REST_NAMESPACE = 'ask-the-origin/v1';
 
     /** Integration-specific operation, also bound into the recipe signature. */
     private const string REST_ROUTE = 'timber/resize';
@@ -60,7 +60,7 @@ final class Timber
         }
         $this->operations = new WeakMap();
         add_filter('wp_get_attachment_metadata', [$this, 'imageDimensions'], 10, 2);
-        add_filter('remote_media_proxy_stream_handlers', [$this, 'handlers']);
+        add_filter('ask_the_origin_stream_handlers', [$this, 'handlers']);
         add_filter('upload_dir', [$this, 'mapDirectory'], PHP_INT_MAX);
         add_filter('timber/url/schemes-whitelist', [$this, 'schemes']);
         add_filter('timber/image/new_path', [$this, 'physicalPath'], PHP_INT_MIN);
@@ -148,8 +148,8 @@ final class Timber
     public function authorizeResize(WP_REST_Request $request): bool|WP_Error
     {
         return $this->readRecipe($request) !== null ? true : new WP_Error(
-            'remote_media_proxy_invalid_resize',
-            __('Invalid or unavailable image request.', 'remote-media-proxy'),
+            'ask_the_origin_invalid_resize',
+            __('Invalid or unavailable image request.', 'ask-the-origin-remote-media-proxy'),
             ['status' => 403]
         );
     }
@@ -165,8 +165,8 @@ final class Timber
         $recipe = $this->readRecipe($request);
         if ($recipe === null) {
             return new WP_Error(
-                'remote_media_proxy_invalid_resize',
-                __('Invalid image request.', 'remote-media-proxy'),
+                'ask_the_origin_invalid_resize',
+                __('Invalid image request.', 'ask-the-origin-remote-media-proxy'),
                 ['status' => 403]
             );
         }
@@ -174,8 +174,8 @@ final class Timber
         $file = $this->openDerivative($recipe, $expiresAt);
         if ($file === null) {
             return new WP_Error(
-                'remote_media_proxy_unavailable',
-                __('The image is unavailable.', 'remote-media-proxy'),
+                'ask_the_origin_unavailable',
+                __('The image is unavailable.', 'ask-the-origin-remote-media-proxy'),
                 ['status' => 502]
             );
         }
@@ -208,8 +208,8 @@ final class Timber
         // Never let REST serialize a reader when buffers or prior output prevent binary delivery.
         $result->set_status(500);
         $result->set_data([
-            'code' => 'remote_media_proxy_delivery_failed',
-            'message' => __('The image could not be delivered.', 'remote-media-proxy'),
+            'code' => 'ask_the_origin_delivery_failed',
+            'message' => __('The image could not be delivered.', 'ask-the-origin-remote-media-proxy'),
             'data' => ['status' => 500],
         ]);
         if (!headers_sent()) {
@@ -228,7 +228,7 @@ final class Timber
      */
     private function readRecipe(WP_REST_Request $request): ?array
     {
-        if (!empty($_SERVER['HTTP_X_REMOTE_MEDIA_PROXY']) || !RemoteMediaProxy::getInstance()->isConfigured()) {
+        if (!empty($_SERVER['HTTP_X_ASK_THE_ORIGIN']) || !RemoteMediaProxy::getInstance()->isConfigured()) {
             return null;
         }
         // Binary responses do not support REST's JSON shaping or envelope mechanisms.
@@ -318,7 +318,7 @@ final class Timber
         if (
             !is_array($metadata) || !is_int($attachmentId) || $attachmentId <= 0
             || !is_string($metadata['file'] ?? null) || $this->imageType($metadata['file']) === null
-            || isset($metadata['_dimensions']) || !empty($_SERVER['HTTP_X_REMOTE_MEDIA_PROXY'])
+            || isset($metadata['_dimensions']) || !empty($_SERVER['HTTP_X_ASK_THE_ORIGIN'])
         ) {
             return $metadata;
         }
@@ -390,7 +390,7 @@ final class Timber
     {
         if (
             $this->mapping || !class_exists(ImageHelper::class, false) || !ini_get('allow_url_fopen')
-            || !empty($_SERVER['HTTP_X_REMOTE_MEDIA_PROXY'])
+            || !empty($_SERVER['HTTP_X_ASK_THE_ORIGIN'])
         ) {
             return $uploads;
         }

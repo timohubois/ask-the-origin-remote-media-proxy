@@ -1,5 +1,5 @@
 {
-    "name": "timohubois/remote-media-proxy",
+    "name": "timohubois/ask-the-origin-remote-media-proxy",
     "description": "Use production media on local and staging WordPress sites without copying the uploads library.",
     "type": "wordpress-plugin",
     "license": "GPL-3.0-or-later",
@@ -28,7 +28,7 @@
     },
     "autoload": {
         "psr-4": {
-            "RemoteMediaProxy\\": "classes/"
+            "AskTheOrigin\\": "classes/"
         }
     },
     "scripts": {

@@ -52,7 +52,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/timber"
           if [ "$TIMBER_CONSTRAINT" = '^1.0' ]; then
             # Legacy compatibility fixture only; no production or global Composer changes.
-            composer init --working-dir="$RUNNER_TEMP/timber" --name=remote-media-proxy/legacy-fixture --no-interaction
+            composer init --working-dir="$RUNNER_TEMP/timber" --name=ask-the-origin/legacy-fixture --no-interaction
             composer config --working-dir="$RUNNER_TEMP/timber" allow-plugins.composer/installers false
             composer config --working-dir="$RUNNER_TEMP/timber" --json policy.advisories.ignore \
               '{"twig/twig":{"constraint":"^1.0 || ^2.0","reason":"Legacy Timber 1 compatibility fixture only; never shipped with the plugin."}}'
@@ -71,7 +71,7 @@ jobs:
           wp core download --path="$RUNNER_TEMP/site"
           cd "$RUNNER_TEMP/site"
           wp config create --dbname=wordpress --dbuser=root --dbpass=root --dbhost=127.0.0.1
-          wp core install --url=http://rmp.test --title=Tests --admin_user=test --admin_password=test-only-password --admin_email=test@example.test --skip-email
+          wp core install --url=http://ato.test --title=Tests --admin_user=test --admin_password=test-only-password --admin_email=test@example.test --skip-email
           mkdir -p wp-content/mu-plugins
           printf '%s\n' \
             '<?php' \
@@ -81,17 +81,17 @@ jobs:
             '} else {' \
             '    new \Timber\Timber();' \
             '}' > wp-content/mu-plugins/timber.php
-          ln -s "$GITHUB_WORKSPACE" wp-content/plugins/remote-media-proxy
-          wp plugin activate remote-media-proxy
+          ln -s "$GITHUB_WORKSPACE" wp-content/plugins/ask-the-origin-remote-media-proxy
+          wp plugin activate ask-the-origin-remote-media-proxy
           wp rewrite structure '/%postname%/'
       - name: Run integration checks
         run: wp --path="$RUNNER_TEMP/site" eval-file "$GITHUB_WORKSPACE/tests/integration.php"
       - name: Check Multisite routing lifecycle
         run: |
           cd "$RUNNER_TEMP/site"
-          wp plugin deactivate remote-media-proxy
+          wp plugin deactivate ask-the-origin-remote-media-proxy
           wp core multisite-convert --base=/
-          wp plugin activate remote-media-proxy --network
+          wp plugin activate ask-the-origin-remote-media-proxy --network
           wp eval-file "$GITHUB_WORKSPACE/tests/multisite.php"
 
   plugin-check:
@@ -100,10 +100,10 @@ jobs:
       - uses: actions/checkout@v7
       - name: Build release directory
         run: |
-          mkdir -p "$RUNNER_TEMP/remote-media-proxy"
-          rsync -a --exclude-from=.distignore ./ "$RUNNER_TEMP/remote-media-proxy/"
+          mkdir -p "$RUNNER_TEMP/ask-the-origin-remote-media-proxy"
+          rsync -a --exclude-from=.distignore ./ "$RUNNER_TEMP/ask-the-origin-remote-media-proxy/"
       - uses: wordpress/plugin-check-action@v1
         with:
-          build-dir: ${{ runner.temp }}/remote-media-proxy
-          slug: remote-media-proxy
+          build-dir: ${{ runner.temp }}/ask-the-origin-remote-media-proxy
+          slug: ask-the-origin-remote-media-proxy
           strict: true

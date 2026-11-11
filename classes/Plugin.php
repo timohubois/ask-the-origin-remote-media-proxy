@@ -1,9 +1,9 @@
 <?php
 
-namespace RemoteMediaProxy;
+namespace AskTheOrigin;
 
-use RemoteMediaProxy\Features\ApacheRouting;
-use RemoteMediaProxy\Features\OptionsMedia;
+use AskTheOrigin\Features\ApacheRouting;
+use AskTheOrigin\Features\OptionsMedia;
 
 defined('ABSPATH') || exit;
 

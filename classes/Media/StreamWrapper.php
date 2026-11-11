@@ -1,6 +1,6 @@
 <?php
 
-namespace RemoteMediaProxy\Media;
+namespace AskTheOrigin\Media;
 
 defined('ABSPATH') || exit;
 
@@ -8,7 +8,7 @@ defined('ABSPATH') || exit;
 final class StreamWrapper
 {
     /** @var string Shared URL scheme for attachment reads and synthetic Timber metadata. */
-    public const string SCHEME = 'remotemediaproxy';
+    public const string SCHEME = 'asktheorigin';
 
     /** @var boolean Whether this request registered the shared stream protocol. */
     private static bool $registered = false;
@@ -62,7 +62,7 @@ final class StreamWrapper
      */
     private static function handler(string $path, string $operation): ?callable
     {
-        if (self::$dispatching || !preg_match('#^remotemediaproxy://([a-z][a-z0-9_-]*)/.+$#D', $path, $matches)) {
+        if (self::$dispatching || !preg_match('#^asktheorigin://([a-z][a-z0-9_-]*)/.+$#D', $path, $matches)) {
             return null;
         }
         self::$dispatching = true;
@@ -72,7 +72,7 @@ final class StreamWrapper
              * open returns MediaFile|null; stat returns array{size: int, mtime?: int}|null.
              * Omitted operations are denied. Writes and PHP includes cannot be enabled here.
              */
-            $handlers = apply_filters('remote_media_proxy_stream_handlers', [
+            $handlers = apply_filters('ask_the_origin_stream_handlers', [
                 'attachment' => [
                     'open' => VirtualUploads::open(...),
                     'stat' => VirtualUploads::stat(...),

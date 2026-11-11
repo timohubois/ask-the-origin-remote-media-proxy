@@ -1,8 +1,8 @@
 <?php
 
-namespace RemoteMediaProxy\Features;
+namespace AskTheOrigin\Features;
 
-use RemoteMediaProxy\Media\RemoteMediaProxy;
+use AskTheOrigin\Media\RemoteMediaProxy;
 
 defined('ABSPATH') || exit;
 
@@ -87,28 +87,28 @@ final class ApacheRouting
                     && !in_array('mod_rewrite', apache_get_modules(), true))
             ) {
                 return self::fail(__(
-                    'Remote Media Proxy cannot manage Apache rules. Configure media routing manually if needed.',
-                    'remote-media-proxy'
+                    'Ask the Origin cannot manage Apache rules. Configure media routing manually if needed.',
+                    'ask-the-origin-remote-media-proxy'
                 ));
             }
             $location = self::location();
             if ($location === null) {
                 return self::fail(__(
-                    'Remote Media Proxy cannot determine the web root. Check the WordPress home and site URLs.',
-                    'remote-media-proxy'
+                    'Ask the Origin cannot determine the web root. Check the WordPress home and site URLs.',
+                    'ask-the-origin-remote-media-proxy'
                 ));
             }
             if (!is_file($location['front'])) {
                 return self::fail(__(
-                    'Remote Media Proxy cannot find index.php. Check the WordPress URLs and server document root.',
-                    'remote-media-proxy'
+                    'Ask the Origin cannot find index.php. Check the WordPress URLs and server document root.',
+                    'ask-the-origin-remote-media-proxy'
                 ));
             }
             $rules = $this->rules($location['path']);
             if ($rules === null) {
                 return self::fail(__(
-                    'Remote Media Proxy cannot route these uploads. Check site, content and uploads URLs and paths.',
-                    'remote-media-proxy'
+                    'Ask the Origin cannot route these uploads. Check site, content and uploads URLs and paths.',
+                    'ask-the-origin-remote-media-proxy'
                 ));
             }
             return self::update($location['file'], $rules);
@@ -280,7 +280,7 @@ final class ApacheRouting
         }
         if (
             (int) $site->network_id === get_current_network_id()
-            && is_plugin_active_for_network(plugin_basename(REMOTE_MEDIA_PROXY_PLUGIN_FILE))
+            && is_plugin_active_for_network(plugin_basename(ASK_THE_ORIGIN_PLUGIN_FILE))
         ) {
             switch_to_blog((int) $site->blog_id);
             try {
@@ -328,7 +328,7 @@ final class ApacheRouting
         if (!self::remove()) {
             wp_die(esc_html(
                 self::$failures[get_current_blog_id()]
-                    ?? __('Remote Media Proxy could not clear its rules.', 'remote-media-proxy')
+                    ?? __('Ask the Origin could not clear its rules.', 'ask-the-origin-remote-media-proxy')
             ));
         }
     }
@@ -340,7 +340,7 @@ final class ApacheRouting
      */
     private static function noticeKey(): string
     {
-        return 'remote_media_proxy_routing_' . get_current_network_id() . '_' . get_current_user_id();
+        return 'ask_the_origin_routing_' . get_current_network_id() . '_' . get_current_user_id();
     }
 
     /**
@@ -369,7 +369,7 @@ final class ApacheRouting
             }
             $message = $network ? sprintf(
                 /* translators: 1: Site ID, 2: Routing failure description. */
-                __('Site %1$d: %2$s', 'remote-media-proxy'),
+                __('Site %1$d: %2$s', 'ask-the-origin-remote-media-proxy'),
                 (int) $siteId,
                 $reason
             ) : $reason;
@@ -387,11 +387,11 @@ final class ApacheRouting
     {
         self::$failures[get_current_blog_id()] = $reason;
         if (defined('WP_CLI') && WP_CLI) {
-            \WP_CLI::warning('Remote Media Proxy (site ' . get_current_blog_id() . '): ' . $reason);
+            \WP_CLI::warning('Ask the Origin (site ' . get_current_blog_id() . '): ' . $reason);
         }
         if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
             // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Diagnostics require WP_DEBUG and WP_DEBUG_LOG; no credentials or request data.
-            error_log('Remote Media Proxy (site ' . get_current_blog_id() . '): ' . sanitize_text_field($reason));
+            error_log('Ask the Origin (site ' . get_current_blog_id() . '): ' . sanitize_text_field($reason));
         }
         return false;
     }
@@ -419,7 +419,7 @@ final class ApacheRouting
     private static function marker(): string
     {
         $root = rtrim(wp_normalize_path(realpath(ABSPATH) ?: ABSPATH), '/') . '/';
-        return 'Remote Media Proxy ' . substr(hash('sha256', $root), 0, 12)
+        return 'Ask the Origin ' . substr(hash('sha256', $root), 0, 12)
             . ' (site ' . get_current_blog_id() . ')';
     }
 
@@ -475,15 +475,15 @@ final class ApacheRouting
         }
         if (!is_string($contents)) {
             return self::fail(__(
-                'Remote Media Proxy cannot read .htaccess in the content directory. Check its type and permissions.',
-                'remote-media-proxy'
+                'Ask the Origin cannot read .htaccess in the content directory. Check its type and permissions.',
+                'ask-the-origin-remote-media-proxy'
             ));
         }
         $block = self::block($contents);
         if ($block === false) {
             return self::fail(__(
-                'Remote Media Proxy found invalid or duplicate .htaccess markers. Repair its marked block and retry.',
-                'remote-media-proxy'
+                'Ask the Origin found invalid or duplicate .htaccess markers. Repair its marked block and retry.',
+                'ask-the-origin-remote-media-proxy'
             ));
         }
         $unchanged = $rules === []
@@ -500,8 +500,8 @@ final class ApacheRouting
             : substr_replace($contents, $replacement, $block[1], strlen($block[0]));
         if (!self::publish($file, $contents, $updated)) {
             return self::fail(__(
-                'Remote Media Proxy could not safely publish .htaccess. Check permissions and disk space, then retry.',
-                'remote-media-proxy'
+                'Ask the Origin could not safely publish .htaccess. Check permissions and disk space, then retry.',
+                'ask-the-origin-remote-media-proxy'
             ));
         }
         unset(self::$failures[get_current_blog_id()]);
@@ -538,7 +538,7 @@ final class ApacheRouting
                 return false;
             }
             // Same-directory staging is required for atomic publication. Dot-prefixed, initially private.
-            $stage = @tempnam($directory, '.htaccess-rmp-');
+            $stage = @tempnam($directory, '.htaccess-ask-the-origin-');
             if ($stage === false) {
                 $stage = null;
                 return false;
