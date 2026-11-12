@@ -10,7 +10,9 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ReflectionClass;
 use ReflectionMethod;
+use RuntimeException;
 use Timber;
+use WP_CLI;
 use WP_Error;
 use WP_Image_Editor_GD;
 use WP_REST_Request;
@@ -23,6 +25,7 @@ use AskTheOrigin\Compatibility\WordPress;
 
 require __DIR__ . '/fixtures.php';
 
+$testFailure = null;
 try {
     // Characterize Retina without extending the resize-only compatibility adapter.
     $retinaSource = home_url('/ato-unified-uploads/retina-local.png');
@@ -544,8 +547,8 @@ try {
         && glob($root . '/ask-the-origin-*.tmp.d') === [],
         'shutdown cleanup removes only remaining working files and workspaces'
     );
-    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CLI-only test diagnostics, not HTML output.
-    echo 'PASSED ' . $GLOBALS['ato_test_count'] . ' checks; Timber ' . Timber\Timber::$version . "\n";
+} catch (RuntimeException $exception) {
+    $testFailure = $exception;
 } finally {
     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_chmod -- Force exact fixture permissions to simulate host changes.
     chmod($root, 0700);
@@ -573,3 +576,7 @@ try {
     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- Remove only test-owned fixtures independently of WordPress deletion filters.
     rmdir($root);
 }
+if ($testFailure !== null) {
+    WP_CLI::error($testFailure->getMessage());
+}
+WP_CLI::log('PASSED ' . $GLOBALS['ato_test_count'] . ' checks; Timber ' . Timber\Timber::$version);

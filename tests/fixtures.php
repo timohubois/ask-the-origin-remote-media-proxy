@@ -7,6 +7,7 @@ namespace AskTheOrigin\Tests;
 use ReflectionProperty;
 use RuntimeException;
 use Timber;
+use WP_CLI;
 use WP_Error;
 use WP_REST_Request;
 use AskTheOrigin\Media\RemoteMediaProxy;
@@ -38,12 +39,12 @@ $GLOBALS['ato_test_count'] = 0;
 function verifyAto($condition, $message)
 {
     if (!$condition) {
-        // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- CLI-only test diagnostics, not HTML output.
+        // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- CLI-only diagnostic, not HTML; WP_CLI reports it after cleanup.
         throw new RuntimeException($message);
     }
     ++$GLOBALS['ato_test_count'];
-    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CLI-only test diagnostics, not HTML output.
-    echo "PASS: $message\n";
+    // Native progress output respects --quiet; failures still throw so cleanup can unwind.
+    WP_CLI::log("PASS: $message");
 }
 /** Simulate a new backend request without changing installation configuration. */
 function freshAto()
@@ -69,7 +70,7 @@ function routeAto($url)
     $path = $query['rest_route'] ?? $parts['path'];
     $offset = strpos($path, '/ask-the-origin/v1/');
     if ($offset === false) {
-        // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- CLI-only test diagnostics, not HTML output.
+        // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- CLI-only diagnostic, not HTML; WP_CLI reports it after cleanup.
         throw new RuntimeException('Expected REST image URL: ' . $url);
     }
     return substr($path, $offset);

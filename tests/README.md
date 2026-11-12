@@ -14,6 +14,8 @@ wp eval-file /absolute/path/to/checkout/tests/integration.php
 
 Run in its own CLI process, not another test runner or a web request. The suite changes fixture permissions, substitutes a failing image editor and installs a non-removable output buffer. It intercepts HTTP requests and cleans up its fixtures without changing saved settings or attachments.
 
+Progress and the final summary use `WP_CLI::log()`: `--quiet` suppresses them without changing assertion counts. Assertion failures still throw `RuntimeException`; the entrypoint completes `finally` cleanup before reporting them with `WP_CLI::error()` and exit code 1. Quiet mode does not hide failures.
+
 The checks cover signed resizing, local precedence, caching, stream reads and cleanup. CI runs against Timber 1 and 2 and logs the resolved versions.
 
 CI then converts the disposable installation to a subdirectory Multisite network and network-activates the plugin. Run `wp eval-file /absolute/path/to/checkout/tests/multisite.php` in that setup to check routing during new-site initialization, network synchronization and site deletion.
