@@ -76,7 +76,7 @@ final class TemporaryFile
         $file = $directory . 'ask-the-origin-' . $token . '.' . $extension;
         $mask = umask(0077);
         try {
-            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Exclusive allocation proves ownership and permits exact editor extensions, unlike wp_tempnam().
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Exclusive native allocation is required for private ownership and exact image-editor extensions.
             $handle = @fopen($file, 'x+b');
         } finally {
             umask($mask);
@@ -85,7 +85,7 @@ final class TemporaryFile
             return null;
         }
         $stat = fstat($handle);
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Close the exclusively allocated native handle before its producer writes.
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Close the owned native handle; WP_Filesystem has no equivalent resource lifetime API.
         fclose($handle);
         self::$files[$file] = $extension !== 'tmp';
         if (!self::$registered) {
@@ -130,7 +130,7 @@ final class TemporaryFile
         if (!is_array($source) || !is_array($destination) || $source['dev'] !== $destination['dev']) {
             return false;
         }
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- Same-filesystem transfer is atomic and never copies into a visible cache entry.
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- Atomic same-filesystem publication is required; WP_Filesystem::move() may copy or pre-delete.
         if (!@rename($file, $target)) {
             return false;
         }

@@ -333,7 +333,7 @@ final class Timber
             return $metadata;
         }
         // Only Timber 1's image constructor imports this private field. Ordinary metadata stays unchanged.
-        // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace -- Scope metadata to Timber's importer; never log the trace.
+        // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace -- Bounded Timber 1 importer detection; the trace is never logged.
         $frames = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 6);
         $caller = $frames[4] ?? [];
         if (
@@ -612,7 +612,7 @@ final class Timber
     private function operation(bool $pathLookup = false): ?array
     {
         // Only Timber's direct path lookup within a non-forced Resize may see the synthetic filesystem.
-        // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace -- Identify the Resize operation and source; never log the trace.
+        // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace -- Bounded native Resize detection requires structured arguments; the trace is never logged.
         $trace = debug_backtrace(0, 24);
         foreach ($trace as $index => $frame) {
             if ($pathLookup && ($frame['function'] ?? '') === 'wp_upload_dir') {

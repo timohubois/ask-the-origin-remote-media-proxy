@@ -98,7 +98,7 @@ try {
         'successful publication leaves no loose download or staging copy'
     );
     $two = $proxy->openUpload('remote.png', $missing, $deadline2);
-    // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- Compare native stream offsets of independently opened readers.
+    // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- Compare bounded reads and independent offsets of native reader handles.
     verifyAto(fread($one->stream, 8) === fread($two->stream, 8), 'cached readers have independent offsets');
     $one->close();
     $two->close();

@@ -127,7 +127,7 @@ final class StreamWrapper
     public function stream_read( // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps -- PHP API.
         int $count
     ): string|false {
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- PHP requires bounded reads from the existing native handle.
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- Read a bounded chunk from the existing native reader without materializing the file.
         return $this->file === null ? false : fread($this->file->stream, $count);
     }
 
@@ -207,7 +207,7 @@ final class StreamWrapper
     private static function reportFailure(bool $report): void
     {
         if ($report) {
-            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error -- PHP requires flag-controlled stream warnings; disclose no request data.
+            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error -- Honor PHP stream error-reporting flags independently of WP_DEBUG; emit only a generic warning.
             trigger_error('Stream operation failed.', E_USER_WARNING);
         }
     }

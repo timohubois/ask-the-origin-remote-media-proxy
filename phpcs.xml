@@ -35,7 +35,7 @@
         <include-pattern>*/classes/*</include-pattern>
     </rule>
     <rule ref="PSR12">
-        <!-- WordPress entry guards intentionally accompany class declarations. -->
+        <!-- Allow WordPress guards and bootstrap code alongside declarations. -->
         <exclude name="PSR1.Files.SideEffects"/>
     </rule>
 </ruleset>

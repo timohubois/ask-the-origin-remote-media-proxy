@@ -29,7 +29,7 @@ $verify = static function (bool $condition, string $message): void {
     WP_CLI::log('PASS: ' . $message);
 };
 $block = static function (int $siteId): string {
-    // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Inspect the actual lifecycle-generated fixture rules.
+    // Inspect the actual lifecycle-generated fixture rules.
     $contents = file_get_contents(WP_CONTENT_DIR . '/.htaccess');
     preg_match('/# BEGIN Ask the Origin [^\r\n]*\(site ' . $siteId . '\)\R(.*?)# END /s', $contents, $matches);
     return $matches[1] ?? '';
