@@ -46,6 +46,17 @@ final class OptionsMedia
      */
     public function getOptions(): array
     {
+        return $this->resolveOptions();
+    }
+
+    /**
+     * Resolve configuration, optionally testing whether a saved enabled value survives the options filter.
+     *
+     * @param boolean|null $enabled Candidate saved status for code-control detection, or null for normal resolution.
+     * @return array{enabled:bool,url:mixed,username:mixed,password:mixed,...} Effective configuration.
+     */
+    private function resolveOptions(?bool $enabled = null): array
+    {
         $options = get_option(self::OPTION_NAME, []);
         $options = is_array($options) ? $options : [];
         if (!defined('ASK_THE_ORIGIN_PASSWORD') && array_key_exists('password', $options)) {
@@ -56,11 +67,64 @@ final class OptionsMedia
                 $options[$name] = constant($constant);
             }
         }
+        if ($enabled !== null) {
+            $options['enabled'] = $enabled;
+        }
         $options = apply_filters('ask_the_origin_options', $options);
         $options = is_array($options) ? $options : [];
         $options = wp_parse_args($options, ['enabled' => false, 'url' => '', 'username' => '', 'password' => '']);
         $options['enabled'] = in_array($options['enabled'], [true, 1, '1'], true);
         return $options;
+    }
+
+    /**
+     * Check whether both saved status values remain effective without overriding configuration code.
+     *
+     * @return boolean Whether a site administrator can change the effective status through saved settings.
+     */
+    public function canToggleEnabled(): bool
+    {
+        if (defined('ASK_THE_ORIGIN_ENABLED')) {
+            return false;
+        }
+        return !has_filter('ask_the_origin_options')
+            || (!$this->resolveOptions(false)['enabled'] && $this->resolveOptions(true)['enabled']);
+    }
+
+    /**
+     * Persist only a validated status, leaving all other saved fields and encrypted credentials intact.
+     *
+     * The caller must check permissions and intent before calling this method.
+     *
+     * @param boolean $enabled Explicit desired state, not a blind inversion of the current state.
+     * @return boolean Whether the requested status was saved and became effective.
+     */
+    public function setEnabled(bool $enabled): bool
+    {
+        if (!$this->canToggleEnabled()) {
+            return false;
+        }
+        $previous = get_option(self::OPTION_NAME, []);
+        $previous = is_array($previous) ? $previous : [];
+        $next = array_replace($previous, ['enabled' => $enabled]);
+        // This status-only write must not run the full-form sanitizer over opaque saved credentials.
+        $callback = [$this, 'sanitizeOptions'];
+        $priority = has_filter('sanitize_option_' . self::OPTION_NAME, $callback);
+        if ($priority !== false) {
+            remove_filter('sanitize_option_' . self::OPTION_NAME, $callback, $priority);
+        }
+        try {
+            update_option(self::OPTION_NAME, $next);
+            if (get_option(self::OPTION_NAME, []) !== $next || $this->getOptions()['enabled'] !== $enabled) {
+                update_option(self::OPTION_NAME, $previous);
+                return false;
+            }
+        } finally {
+            if ($priority !== false) {
+                add_filter('sanitize_option_' . self::OPTION_NAME, $callback, $priority);
+            }
+        }
+        return true;
     }
 
     /**

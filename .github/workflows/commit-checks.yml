@@ -96,13 +96,20 @@ jobs:
           wp rewrite structure '/%postname%/'
       - name: Run integration checks
         run: wp --path="$RUNNER_TEMP/site" eval-file "$GITHUB_WORKSPACE/tests/integration.php"
-      - name: Check Multisite routing lifecycle
+      - name: Check toolbar menu and toggle requests
+        run: wp --path="$RUNNER_TEMP/site" eval-file "$GITHUB_WORKSPACE/tests/admin-bar.php"
+      - name: Check Multisite routing and toolbar activation modes
         run: |
           cd "$RUNNER_TEMP/site"
           wp plugin deactivate ask-the-origin-remote-media-proxy
           wp core multisite-convert --base=/
           wp plugin activate ask-the-origin-remote-media-proxy --network
           wp eval-file "$GITHUB_WORKSPACE/tests/multisite.php"
+          wp eval-file "$GITHUB_WORKSPACE/tests/admin-bar.php"
+          wp --exec='define("WP_NETWORK_ADMIN", true);' eval-file "$GITHUB_WORKSPACE/tests/admin-bar.php"
+          wp plugin deactivate ask-the-origin-remote-media-proxy --network
+          wp plugin activate ask-the-origin-remote-media-proxy
+          wp eval-file "$GITHUB_WORKSPACE/tests/admin-bar.php"
 
   plugin-check:
     runs-on: ubuntu-24.04

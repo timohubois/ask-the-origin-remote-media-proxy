@@ -3,7 +3,7 @@ Contributors: timohubois
 Tags: uploads, development, media, proxy
 Requires at least: 7.0
 Tested up to: 7.1
-Stable tag: 1.0.1
+Stable tag: 1.1.0
 Requires PHP: 8.3
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -20,6 +20,7 @@ Configure the source and optional HTTP Basic Auth under **Settings > Media**. No
 
 **Features**
 
+* Show a native Media toolbar menu with a per-site Enabled/Disabled toggle and Settings shortcut for users who can manage settings.
 * Connect to sources protected by HTTP Basic Auth.
 * Serve missing uploads through compatible PHP attachment readers.
 * Support Timber 1 and 2 resizing, including Twig's resize filter and Flynt's normal resizeDynamic calls, subject to the compatibility limits below.
@@ -96,6 +97,11 @@ When enabled, the plugin requests missing media from your configured source site
 Visit the [GitHub repository](https://github.com/timohubois/ask-the-origin-remote-media-proxy/) to report issues or contribute.
 
 == Changelog ==
+
+= 1.1.0 =
+* Add a native Media toolbar menu with per-site proxy status, an enable/disable toggle and a Settings shortcut.
+* Respect code-controlled status and preserve saved credentials and other settings when toggling.
+* Center the WordPress.org plugin listing icons.
 
 = 1.0.1 =
 * Improve validation of media request URIs and temporary-directory inputs.
