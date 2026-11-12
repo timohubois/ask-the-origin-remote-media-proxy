@@ -21,7 +21,11 @@ final class TemporaryFile
      */
     public static function directory(?string $path = null): ?string
     {
-        $directory = @realpath($path ?? get_temp_dir());
+        $path ??= get_temp_dir();
+        if (!is_string($path) || $path === '' || str_contains($path, "\0")) {
+            return null;
+        }
+        $directory = @realpath($path);
         if (
             $directory === false || !is_dir($directory)
             || !function_exists('umask')
@@ -30,11 +34,14 @@ final class TemporaryFile
         }
         $directory = rtrim(wp_normalize_path($directory), '/') . '/';
         $uploads = wp_get_upload_dir();
-        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Validate the exclusion root with realpath(); sanitizing could change it.
-        $documentRoot = wp_unslash($_SERVER['DOCUMENT_ROOT'] ?? '');
-        $roots = [ABSPATH, WP_CONTENT_DIR, dirname(__DIR__, 2), $uploads['basedir'], $documentRoot];
+        $roots = [ABSPATH, WP_CONTENT_DIR, dirname(__DIR__, 2), $uploads['basedir']];
+        // Validate the exclusion root with realpath(); sanitizing could change it.
+        if (isset($_SERVER['DOCUMENT_ROOT']) && is_string($_SERVER['DOCUMENT_ROOT'])) {
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Canonical exclusion boundary validated with realpath(), not text sanitization.
+            $roots[] = wp_unslash($_SERVER['DOCUMENT_ROOT']);
+        }
         foreach ($roots as $root) {
-            if (!is_string($root) || $root === '') {
+            if (!is_string($root) || $root === '' || str_contains($root, "\0")) {
                 continue;
             }
             $root = @realpath($root);

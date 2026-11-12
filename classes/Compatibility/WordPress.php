@@ -45,10 +45,15 @@ final class WordPress
         if ($requestMethod !== 'GET' || headers_sent() || !empty($_SERVER['HTTP_X_ASK_THE_ORIGIN'])) {
             return $template;
         }
+        if (!isset($_SERVER['REQUEST_URI']) || !is_string($_SERVER['REQUEST_URI'])) {
+            return $template;
+        }
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Preserve exact paths; isValidPath() rejects unsafe paths before file access.
+        $requestUri = wp_unslash($_SERVER['REQUEST_URI']);
         $uploads = wp_get_upload_dir();
         $uploadsPath = rtrim((string) wp_parse_url($uploads['baseurl'], PHP_URL_PATH), '/');
-        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Preserve exact paths; isValidPath() rejects traversal and controls before use.
-        $requestPath = rawurldecode(explode('?', wp_unslash($_SERVER['REQUEST_URI'] ?? ''), 2)[0]);
+        // Preserve exact paths; isValidPath() rejects traversal and controls before use.
+        $requestPath = rawurldecode(explode('?', $requestUri, 2)[0]);
         if (!str_starts_with($requestPath, $uploadsPath . '/')) {
             return $template;
         }
