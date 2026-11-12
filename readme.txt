@@ -3,7 +3,7 @@ Contributors: timohubois
 Tags: uploads, development, media, proxy
 Requires at least: 7.0
 Tested up to: 7.1
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 Requires PHP: 8.3
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -96,6 +96,12 @@ When enabled, the plugin requests missing media from your configured source site
 Visit the [GitHub repository](https://github.com/timohubois/ask-the-origin-remote-media-proxy/) to report issues or contribute.
 
 == Changelog ==
+
+= 1.0.1 =
+* Improve validation of media request URIs and temporary-directory inputs.
+* Clarify setup, routing, authentication and compatibility documentation.
+* Refresh the plugin description, repository links and listing artwork.
+* Improve integration-test filesystem checks, cleanup and WP-CLI diagnostics.
 
 = 1.0.0 =
 * Initial release.
