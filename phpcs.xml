@@ -16,7 +16,12 @@
     <rule ref="WordPress.WP.AlternativeFunctions"/>
     <rule ref="WordPress.PHP.DevelopmentFunctions"/>
     <rule ref="WordPress.WP.I18n">
-        <properties><property name="text_domain" type="array"><element value="ask-the-origin-remote-media-proxy"/></property></properties>
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="ask-the-origin-remote-media-proxy"/>
+                <element value="default"/>
+            </property>
+        </properties>
     </rule>
     <!-- Require complete PHPDoc for application classes, methods and properties. -->
     <rule ref="Squiz.Commenting.DocCommentAlignment">
