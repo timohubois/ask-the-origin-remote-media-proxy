@@ -9,6 +9,7 @@ use RuntimeException;
 use Timber;
 use WP_CLI;
 use WP_Error;
+use WP_Filesystem_Direct;
 use WP_REST_Request;
 use AskTheOrigin\Media\RemoteMediaProxy;
 
@@ -27,11 +28,24 @@ if (
 if (function_exists('posix_geteuid') && posix_geteuid() === 0) {
     throw new RuntimeException('Run as a non-root user so permission failures can be tested.');
 }
+require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+// Keep fixture operations local without replacing the global transport or requesting credentials.
+$fixtureFilesystem = new WP_Filesystem_Direct(null);
 $root = sys_get_temp_dir() . '/ato-rest-' . bin2hex(random_bytes(8));
-// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_mkdir -- Create only isolated test-owned fixture directories.
-mkdir($root, 0700);
-// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_mkdir -- Create only isolated test-owned fixture directories.
-mkdir($root . '/uploads', 0700);
+// The direct transport applies chmod after mkdir; keep new fixture directories private from creation.
+$fixtureMask = umask(0077);
+try {
+    if (!$fixtureFilesystem->mkdir($root, 0700)) {
+        throw new RuntimeException('Could not create the private test directory.');
+    }
+    if (!$fixtureFilesystem->mkdir($root . '/uploads', 0700)) {
+        $fixtureFilesystem->delete($root, false, 'd');
+        throw new RuntimeException('Could not create the private fixture uploads directory.');
+    }
+} finally {
+    umask($fixtureMask);
+}
 define('WP_TEMP_DIR', $root);
 $GLOBALS['ato_test_count'] = 0;
 
@@ -135,7 +149,17 @@ $calls = [];
 $status = 200;
 $derivativeStatus = 404;
 $body = $png;
-$httpFilter = static function ($pre, $args, $url) use (&$calls, &$status, &$derivativeStatus, &$body) {
+$httpFilter = static function (
+    $pre,
+    $args,
+    $url
+) use (
+    &$calls,
+    &$status,
+    &$derivativeStatus,
+    &$body,
+    $fixtureFilesystem
+) {
     $name = basename((string) wp_parse_url($url, PHP_URL_PATH));
     $originals = ['source.png', 'source.jpg', 'source.gif', 'remote.png', 'fallback.png'];
     $code = in_array($name, $originals, true) ? $status : $derivativeStatus;
@@ -144,8 +168,10 @@ $httpFilter = static function ($pre, $args, $url) use (&$calls, &$status, &$deri
         return new WP_Error('fixture_transport', 'Intercepted transport failure');
     }
     if ($code === 200 && !empty($args['stream'])) {
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Populate controlled fixtures or intercepted HTTP staging files.
-        file_put_contents($args['filename'], $body);
+        verifyAto(
+            $fixtureFilesystem->put_contents($args['filename'], $body, 0600),
+            'intercepted HTTP response is written to its private staging file'
+        );
     }
     $mime = match (strtolower(pathinfo($name, PATHINFO_EXTENSION))) {
         'jpg' => 'image/jpeg', 'gif' => 'image/gif', default => 'image/png'

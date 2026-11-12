@@ -14,7 +14,9 @@ wp eval-file /absolute/path/to/checkout/tests/integration.php
 
 Run in its own CLI process, not another test runner or a web request. The suite changes fixture permissions, substitutes a failing image editor and installs a non-removable output buffer. It intercepts HTTP requests and cleans up its fixtures without changing saved settings or attachments.
 
-Progress and the final summary use `WP_CLI::log()`: `--quiet` suppresses them without changing assertion counts. Assertion failures still throw `RuntimeException`; the entrypoint completes `finally` cleanup before reporting them with `WP_CLI::error()` and exit code 1. Quiet mode does not hide failures.
+Progress and the final summary use `WP_CLI::log()`: `--quiet` suppresses them without changing assertion counts. Assertion failures still throw `RuntimeException`; the entrypoint completes `finally` cleanup before reporting them with `WP_CLI::error()` and exit code 1. Quiet mode does not hide failures. The success summary is emitted only after cleanup succeeds.
+
+Fixture operations use a local `WP_Filesystem_Direct` instance without replacing the global transport or requesting credentials. Directories and seeded files use explicit private permissions; initial directory creation also uses a restrictive umask that is restored immediately. Writes, permission changes, expiration timestamps and intermediate deletions are checked; final cleanup attempts every deletion and reports failures instead of printing a success summary. Deletion stays non-recursive and independent of WordPress deletion filters.
 
 The checks cover signed resizing, local precedence, caching, stream reads and cleanup. CI runs against Timber 1 and 2 and logs the resolved versions.
 
