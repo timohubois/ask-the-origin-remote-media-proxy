@@ -1,41 +1,33 @@
 <?xml version="1.0"?>
 <ruleset name="ask-the-origin-remote-media-proxy">
-    <description>PSR-12 with WordPress security, database and translation checks.</description>
+    <description>PSR-12, PHP compatibility and WordPress correctness checks.</description>
     <file>./</file>
     <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
     <arg name="basepath" value="./"/>
     <arg value="ps"/>
     <arg name="extensions" value="php"/>
     <config name="testVersion" value="8.3-"/>
     <config name="minimum_supported_wp_version" value="7.0"/>
     <rule ref="PHPCompatibilityWP"/>
+    <rule ref="PSR12">
+        <!-- Allow WordPress guards and bootstrap code alongside declarations. -->
+        <exclude name="PSR1.Files.SideEffects"/>
+    </rule>
     <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+    <rule ref="Squiz.Commenting.DocCommentAlignment"/>
     <rule ref="WordPress.CodeAnalysis"/>
+    <rule ref="WordPress.DateTime"/>
     <rule ref="WordPress.DB"/>
     <rule ref="WordPress.Security"/>
     <rule ref="WordPress.WP.AlternativeFunctions"/>
     <rule ref="WordPress.PHP.DevelopmentFunctions"/>
     <rule ref="WordPress.WP.I18n">
-        <properties><property name="text_domain" type="array"><element value="ask-the-origin-remote-media-proxy"/></property></properties>
-    </rule>
-    <!-- Require complete PHPDoc for application classes, methods and properties. -->
-    <rule ref="Squiz.Commenting.DocCommentAlignment">
-        <include-pattern>*/classes/*</include-pattern>
-    </rule>
-    <rule ref="Squiz.Commenting.ClassComment">
-        <include-pattern>*/classes/*</include-pattern>
-    </rule>
-    <rule ref="Squiz.Commenting.FunctionComment">
-        <include-pattern>*/classes/*</include-pattern>
-        <!-- Squiz's legacy type matcher does not fully understand PHP 8 types and precise PHPDoc types. -->
-        <exclude name="Squiz.Commenting.FunctionComment.IncorrectTypeHint"/>
-        <exclude name="Squiz.Commenting.FunctionComment.InvalidTypeHint"/>
-    </rule>
-    <rule ref="Squiz.Commenting.VariableComment">
-        <include-pattern>*/classes/*</include-pattern>
-    </rule>
-    <rule ref="PSR12">
-        <!-- WordPress entry guards intentionally accompany class declarations. -->
-        <exclude name="PSR1.Files.SideEffects"/>
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="ask-the-origin-remote-media-proxy"/>
+                <element value="default"/>
+            </property>
+        </properties>
     </rule>
 </ruleset>

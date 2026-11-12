@@ -40,12 +40,12 @@ final class MediaFile
      */
     public static function open(string $path, string $type): ?self
     {
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Native handles support bounded reads and seeking.
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Native read-only handle is required for bounded reads and seeking.
         $stream = is_file($path) ? @fopen($path, 'rb') : false;
         $stat = is_resource($stream) ? fstat($stream) : false;
         if (!is_array($stat) || !is_int($stat['size']) || $stat['size'] < 0) {
             if (is_resource($stream)) {
-                // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Close the native handle owned by this reader.
+                // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Close the owned native handle; WP_Filesystem has no equivalent resource lifetime API.
                 fclose($stream);
             }
             return null;
@@ -63,7 +63,7 @@ final class MediaFile
     {
         unset(self::$streams[(int) $this->stream]);
         if (is_resource($this->stream)) {
-            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Close the native handle owned by this reader.
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Close the owned native handle; WP_Filesystem has no equivalent resource lifetime API.
             fclose($this->stream);
         }
     }
@@ -77,7 +77,7 @@ final class MediaFile
     {
         foreach (self::$streams as $stream) {
             if (is_resource($stream)) {
-                // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Release native handles before deleting temporary files.
+                // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Close the owned native handle; WP_Filesystem has no equivalent resource lifetime API.
                 fclose($stream);
             }
         }

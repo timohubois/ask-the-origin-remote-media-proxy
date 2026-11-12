@@ -21,7 +21,11 @@ final class TemporaryFile
      */
     public static function directory(?string $path = null): ?string
     {
-        $directory = @realpath($path ?? get_temp_dir());
+        $path ??= get_temp_dir();
+        if (!is_string($path) || $path === '' || str_contains($path, "\0")) {
+            return null;
+        }
+        $directory = @realpath($path);
         if (
             $directory === false || !is_dir($directory)
             || !function_exists('umask')
@@ -30,11 +34,14 @@ final class TemporaryFile
         }
         $directory = rtrim(wp_normalize_path($directory), '/') . '/';
         $uploads = wp_get_upload_dir();
-        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Validate the exclusion root with realpath(); sanitizing could change it.
-        $documentRoot = wp_unslash($_SERVER['DOCUMENT_ROOT'] ?? '');
-        $roots = [ABSPATH, WP_CONTENT_DIR, dirname(__DIR__, 2), $uploads['basedir'], $documentRoot];
+        $roots = [ABSPATH, WP_CONTENT_DIR, dirname(__DIR__, 2), $uploads['basedir']];
+        // Validate the exclusion root with realpath(); sanitizing could change it.
+        if (isset($_SERVER['DOCUMENT_ROOT']) && is_string($_SERVER['DOCUMENT_ROOT'])) {
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Canonical exclusion boundary validated with realpath(), not text sanitization.
+            $roots[] = wp_unslash($_SERVER['DOCUMENT_ROOT']);
+        }
         foreach ($roots as $root) {
-            if (!is_string($root) || $root === '') {
+            if (!is_string($root) || $root === '' || str_contains($root, "\0")) {
                 continue;
             }
             $root = @realpath($root);
@@ -69,7 +76,7 @@ final class TemporaryFile
         $file = $directory . 'ask-the-origin-' . $token . '.' . $extension;
         $mask = umask(0077);
         try {
-            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Exclusive allocation proves ownership and permits exact editor extensions, unlike wp_tempnam().
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Exclusive native allocation is required for private ownership and exact image-editor extensions.
             $handle = @fopen($file, 'x+b');
         } finally {
             umask($mask);
@@ -78,7 +85,7 @@ final class TemporaryFile
             return null;
         }
         $stat = fstat($handle);
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Close the exclusively allocated native handle before its producer writes.
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Close the owned native handle; WP_Filesystem has no equivalent resource lifetime API.
         fclose($handle);
         self::$files[$file] = $extension !== 'tmp';
         if (!self::$registered) {
@@ -123,7 +130,7 @@ final class TemporaryFile
         if (!is_array($source) || !is_array($destination) || $source['dev'] !== $destination['dev']) {
             return false;
         }
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- Same-filesystem transfer is atomic and never copies into a visible cache entry.
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- Atomic same-filesystem publication is required; WP_Filesystem::move() may copy or pre-delete.
         if (!@rename($file, $target)) {
             return false;
         }

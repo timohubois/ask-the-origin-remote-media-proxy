@@ -390,7 +390,7 @@ final class ApacheRouting
             \WP_CLI::warning('Ask the Origin (site ' . get_current_blog_id() . '): ' . $reason);
         }
         if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
-            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Diagnostics require WP_DEBUG and WP_DEBUG_LOG; no credentials or request data.
+            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Operational log requires WP_DEBUG and WP_DEBUG_LOG; no credentials or request data.
             error_log('Ask the Origin (site ' . get_current_blog_id() . '): ' . sanitize_text_field($reason));
         }
         return false;
@@ -526,7 +526,7 @@ final class ApacheRouting
             return false;
         }
         $filesystem = self::filesystem();
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Native handle required for flock() and inode checks.
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Native locking handle is required for flock() and inode checks.
         $lock = $exists ? @fopen($file, 'rb') : null;
         $stage = null;
         try {
@@ -586,7 +586,7 @@ final class ApacheRouting
                 ) {
                     return false;
                 }
-                // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- Require atomic replacement; WP_Filesystem::move() can fall back to copying.
+                // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- Atomic same-filesystem publication is required; WP_Filesystem::move() may copy or pre-delete.
                 if (!@rename($stage, $file)) {
                     return false;
                 }
@@ -601,7 +601,7 @@ final class ApacheRouting
             }
             if (is_resource($lock)) {
                 flock($lock, LOCK_UN);
-                // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Release the native locking handle.
+                // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Close the owned native handle; WP_Filesystem has no equivalent resource lifetime API.
                 fclose($lock);
             }
         }
