@@ -76,6 +76,16 @@ composer rector:run  # Advisory dry-run
 
 See [tests/README.md](tests/README.md) for integration checks. CI runs the Timber integration suite and strict WordPress Plugin Check. Tests and development dependencies are excluded from release packages.
 
+## Releases
+
+Configure the repository's `SVN_USERNAME` and `SVN_PASSWORD` Actions secrets with WordPress.org SVN deployment credentials.
+
+Keep the plugin header version, `readme.txt` stable tag and changelog in sync. Push the release commit to `main`, then push a numeric version tag such as `1.0.1` (without a `v` prefix). **Pushing a tag publishes the plugin:** the release workflow runs the existing lint, Timber integration/Multisite and strict Plugin Check jobs, deploys to WordPress.org after they pass, and creates a GitHub release with the installable ZIP.
+
+The `.wordpress-org/` artwork is deployed to WordPress.org's separate assets directory and excluded from the plugin ZIP through `.distignore`.
+
+Between releases, run **Publish listing assets and readme** manually from `main`. Only use it after the current code version has been released; the action refuses to publish when files other than the readme/assets differ from WordPress.org. This workflow also writes to the live directory listing.
+
 ## License
 
 GPLv3 or later. See [LICENSE](LICENSE).
