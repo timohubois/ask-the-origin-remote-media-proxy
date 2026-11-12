@@ -33,6 +33,17 @@ Disable the proxy before moving WordPress or its content directory.
 
 ## Usage and compatibility
 
+While the plugin is active, users with the `manage_options` capability (administrators by default) see a standalone native Media icon in the WordPress toolbar, even when the proxy is disabled. The icon keeps the native toolbar colors. Its tooltip matches the dropdown status text exactly—**Ask the Origin: Enabled** or **Ask the Origin: Disabled**—without the colored dot. Existing toolbar menus are unchanged, and a hidden toolbar is not forced to appear.
+
+The dropdown has two items:
+
+- **Ask the Origin: Enabled** or **Ask the Origin: Disabled**, with a green or gray status dot. Click this item to switch the current site's proxy status. Screen-reader text explains the action and identifies the site without adding visible text.
+- **Settings**, linking to the Status setting under **Settings > Media**. The icon itself links there too.
+
+Status changes use a permission-checked, site-bound, nonce-protected POST and retain the other saved settings and credentials. Without JavaScript, the status link opens Media settings instead. If `ASK_THE_ORIGIN_ENABLED` or the options filter prevents changing the effective status, the row is read-only; its screen-reader text explains that configuration code controls it. Filters that only set other fields do not lock the status toggle.
+
+On Multisite, the status and toggle apply only to the current site, whether the plugin is site-activated or network-activated. This remains a per-site status in Network Admin, not a network-wide proxy switch. The accessible menu description identifies the site. The icon remains available at WordPress's mobile toolbar breakpoint, and flex alignment centers the icon, dropdown dot and status text within the native responsive row sizes.
+
 Existing destination files are used first, then fresh cached files, then media retrieved from the source. The plugin does not copy content, synchronize uploads or import Media Library records. Copy the site's content separately when preparing a local or staging site.
 
 The plugin supports Timber 1 and 2 resizing, including Twig's resize filter and Flynt's normal `resizeDynamic` calls. Forced resizing, Retina generation from missing originals, SVG transformations, custom Resize subclasses, arbitrary transformation chains, and Flynt's separate on-demand generation mode are not supported. PHP readers that require a physical file in uploads may not work; general filesystem access and image editing are not covered.

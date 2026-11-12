@@ -26,7 +26,23 @@ Fixture operations use a local `WP_Filesystem_Direct` instance without replacing
 
 The checks cover signed resizing, local precedence, caching, stream reads and cleanup. CI runs against Timber 1 and 2 and logs the resolved versions.
 
-## Multisite routing suite
+## Toolbar menu and toggle suite
+
+With the plugin active in a disposable WordPress installation (single-site or Multisite), run:
+
+```sh
+wp eval-file /absolute/path/to/checkout/tests/admin-bar.php
+```
+
+One shared set of temporary users covers capability grants and denials, both status values, the native Media icon, tooltip matching the plain dropdown status, accessible site-specific labels, dropdown labels and colors, Settings link, untouched native menus and code-controlled read-only states. Timber is not required.
+
+Isolated CLI-subprocess requests exercise the real POST handler, including normal redirects. They reject invalid methods, permissions, nonces, states, cross-site payloads and locked configuration; verify enable/disable, repeated requests and source-URL-only filters; and preserve opaque credentials and unrelated settings. Prevented or altered saves fail safely, and every request must restore the Settings API sanitizer.
+
+The suite restores the original option and current user and removes its users, including network-wide deletion on Multisite. It intentionally changes saved settings and can synchronize plugin-owned Apache routing: **run only in disposable installations, never on a live project**.
+
+CI runs it with single-site activation, Multisite network activation, Network Admin context, and Multisite per-site activation.
+
+## Multisite routing and toolbar suite
 
 Use a disposable **subdirectory Multisite** installation with the plugin network-active and `WP_CONTENT_DIR/.htaccess` writable. CI converts its single-site fixture to this setup after the first suite. See [the CI workflow](../.github/workflows/commit-checks.yml) for the complete setup.
 
@@ -36,7 +52,7 @@ From that installation's root, run:
 wp eval-file /absolute/path/to/checkout/tests/multisite.php
 ```
 
-This suite creates and deletes a temporary site and writes plugin-owned routing blocks in `WP_CONTENT_DIR/.htaccess`. It checks new-site initialization, network synchronization and site deletion without persisting the test configuration in saved settings.
+This suite creates and deletes a temporary site and writes plugin-owned routing blocks in `WP_CONTENT_DIR/.htaccess`. It checks new-site initialization, network synchronization and site deletion, plus site-specific toolbar status and settings links when switching between an enabled subsite and disabled main site. The toolbar menu remains available in both states. Test configuration is not persisted in saved settings.
 
 ## CI dependencies
 
