@@ -1,14 +1,43 @@
 # Ask the Origin – Remote Media Proxy
 
-Use production media on local and staging WordPress sites without copying the uploads library. Existing local files take precedence; missing media is cached privately, never added to uploads.
+Show media from the origin. Without copying the uploads library.
 
-## Setup
+Ask the Origin – Remote Media Proxy serves missing media on a local or staging WordPress site from a configured source site (the origin). Existing files on the destination site take precedence. Retrieved files are cached privately, without being added to uploads or the Media Library.
 
-Requires WordPress 7.0+ and PHP 8.3+. Install in `wp-content/plugins/ask-the-origin-remote-media-proxy/`, activate, and configure the source under **Settings > Media**. Composer is not required at runtime.
+## Requirements
 
-The source must use a different hostname and matching uploads paths. Supported Apache layouts are configured automatically; other servers need manual routing. Review existing Apache rules before enabling, and protect the destination site separately from the source.
+Requires WordPress 7.0+ and PHP 8.3+. Composer is not required to run the plugin. No plugin is needed on the source site.
 
-See [readme.txt](readme.txt) for server requirements, caching, compatibility and security notes.
+The source must use a different hostname and matching uploads paths relative to its site base. The plugin does not translate different single-site, Multisite or CDN upload layouts. Use HTTPS and trust the source.
+
+The private cache requires writable storage outside known web roots in WordPress's temporary directory, respecting `WP_TEMP_DIR`. Cached files are fresh for five minutes. There is no automatic cache cleanup or download-size limit; use this for images and modest-sized files rather than large video delivery.
+
+PHP attachment readers and supported Timber resizing require `allow_url_fopen`; resizing also requires REST API access.
+
+## Installation
+
+1. Place the plugin in `wp-content/plugins/ask-the-origin-remote-media-proxy/` and activate it on the destination site. The proxy remains disabled.
+2. Review the routing requirements below and protect the destination site before enabling the proxy. Configure manual server routing if required.
+3. Under **Settings > Media**, set **Remote site URL** to the source site's base URL, enter any required HTTP Basic Auth credentials, enable the proxy and save.
+4. Resolve any routing warning and check a page with missing media.
+
+Protect the destination site separately: source authentication does not restrict its visitors. The plugin does not sanitize SVG content if SVG uploads are enabled.
+
+### Server routing
+
+On supported Apache layouts, the plugin manages a marked block in `WP_CONTENT_DIR/.htaccess`. This requires `mod_rewrite`, a writable content directory, and uploads within that directory and its public URL path. Review existing rules: child rewrite rules can replace inherited security restrictions. Keep restrictions on script execution in uploads. If missing files still return 404, check that `mod_rewrite` is loaded; PHP-FPM and WP-CLI cannot always detect it.
+
+On nginx, Caddy or other layouts, configure the server to route missing upload requests to WordPress's front controller instead of returning a static 404. Preserve upload security restrictions.
+
+Disable the proxy before moving WordPress or its content directory.
+
+## Usage and compatibility
+
+Existing destination files are used first, then fresh cached files, then media retrieved from the source. The plugin does not copy content, synchronize uploads or import Media Library records. Copy the site's content separately when preparing a local or staging site.
+
+The plugin supports Timber 1 and 2 resizing, including Twig's resize filter and Flynt's normal `resizeDynamic` calls. Forced resizing, Retina generation from missing originals, SVG transformations, custom Resize subclasses, arbitrary transformation chains, and Flynt's separate on-demand generation mode are not supported. PHP readers that require a physical file in uploads may not work; general filesystem access and image editing are not covered.
+
+See the [listing FAQ](readme.txt) for details of cache behavior, resizing, credentials and removal.
 
 ## Configuration in code
 
@@ -16,24 +45,24 @@ Define any of these constants in `wp-config.php` to override saved settings:
 
 ```php
 define('ASK_THE_ORIGIN_ENABLED', true);
-define('ASK_THE_ORIGIN_URL', 'https://production.example');
+define('ASK_THE_ORIGIN_URL', 'https://origin.example');
 define('ASK_THE_ORIGIN_USERNAME', 'example-user');
 define('ASK_THE_ORIGIN_PASSWORD', 'example-password');
 ```
 
 Use a boolean for `ENABLED` and strings for the other values. Defined `false` and empty strings are intentional overrides. Constant-controlled fields are disabled in Media settings; their previously saved values remain available if the constants are removed. Code-supplied passwords are not saved or displayed.
 
-The `ask_the_origin_options` filter runs after saved settings and constants:
+Configuration is applied in this order: saved settings, constants, then the `ask_the_origin_options` filter. The filter can override both saved settings and constants:
 
 ```php
 add_filter('ask_the_origin_options', static function (array $options): array {
     $options['enabled'] = true;
-    $options['url'] = 'https://production.example';
+    $options['url'] = 'https://origin.example';
     return $options;
 });
 ```
 
-Apply configuration site-wide, not just during template rendering. Visit the site's admin after code changes to update Apache routing.
+Load configuration on every request, including REST and media requests, rather than only during template rendering. Visit the site's admin after configuration changes to update Apache routing.
 
 ## Development
 

@@ -8,27 +8,34 @@ Requires PHP: 8.3
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Use production media on local and staging WordPress sites without copying the uploads library.
+Show media from the origin. Without copying the uploads library.
 
 == Description ==
 
-Ask the Origin loads missing media from a source site instead of copying the uploads library. Existing local files take precedence. Retrieved files are cached privately, never added to uploads.
+Ask the Origin – Remote Media Proxy displays missing media on a local or staging WordPress site by retrieving it on demand from a configured source site—the origin. You can use the source site's media without copying its uploads library.
 
-Configure the source and optional HTTP Basic Auth under **Settings > Media**. The plugin is disabled by default; it does not enable itself based on the WordPress environment type. No plugin is needed on the source site.
+Files already present on the destination site always take precedence. Retrieved files are cached privately, without being added to the uploads directory or imported into the Media Library.
 
-* Serve missing uploads in the browser and through compatible PHP attachment readers.
-* Support Timber resizing, including Twig's resize filter and Flynt's normal resizeDynamic calls.
+Configure the source and optional HTTP Basic Auth under **Settings > Media**. No plugin is needed on the source site. The proxy stays disabled until you enable it; it does not enable itself based on the WordPress environment type.
+
+**Features**
+
+* Connect to sources protected by HTTP Basic Auth.
+* Serve missing uploads through compatible PHP attachment readers.
+* Support Timber 1 and 2 resizing, including Twig's resize filter and Flynt's normal resizeDynamic calls, subject to the compatibility limits below.
 * Configure missing-upload routing automatically on supported Apache layouts.
 * Use per-site settings on Multisite or supply configuration in code.
 
-== Want to contribute? ==
-Check out the Plugin [GitHub Repository](https://github.com/timohubois/ask-the-origin-remote-media-proxy/).
+**Before you start**
+
+The source must use a different hostname and matching uploads paths. Protect the destination site separately: source authentication does not restrict its visitors. Review Installation and the FAQs for routing requirements and compatibility limits.
 
 == Installation ==
 
-1. Upload the plugin to /wp-content/plugins/ask-the-origin-remote-media-proxy/ and activate it. Composer is not required.
-2. In **Settings > Media**, enter the source site base URL and any Basic Auth credentials, then enable the proxy.
-3. Review server routing and resolve any warning shown in the admin.
+1. Upload the plugin to /wp-content/plugins/ask-the-origin-remote-media-proxy/ and activate it. Composer is not required. The proxy remains disabled after activation.
+2. Review the routing requirements below and protect your local or staging site as needed. Configure manual server routing if required.
+3. In **Settings > Media**, set **Remote site URL** to the source site's base URL and enter any required HTTP Basic Auth credentials. Enable the proxy and save changes.
+4. Resolve any routing warning shown in the admin and check a page with missing media.
 
 The source must use a different hostname and matching uploads paths relative to its site base. The plugin does not translate different single-site, Multisite or CDN upload layouts.
 
@@ -37,6 +44,12 @@ The source must use a different hostname and matching uploads paths relative to 
 **nginx, Caddy or other layouts:** configure the server to route missing upload requests to WordPress's front controller instead of returning a static 404. Preserve upload security restrictions.
 
 == Frequently Asked Questions ==
+
+= Does this copy or synchronize my Media Library? =
+
+No. The plugin serves missing files from matching uploads paths on the configured source. It does not import attachment records, migrate content or synchronize uploads. Existing local files are used first and are never replaced with source files.
+
+If you need the source site's pages, posts and Media Library entries, copy that content separately as part of your development setup.
 
 = Where are files cached? =
 
@@ -50,7 +63,7 @@ If the source is unavailable, local files and fresh cached files still work. Exp
 
 The plugin integrates with Timber 1 and 2. When the local original and derivative are missing, supported resizes return signed image URLs. The image request retrieves the remote derivative or, only after a remote 404, downloads the original and resizes it with Timber. Existing local files retain native behavior.
 
-This requires allow_url_fopen and REST API access. Forced resizing, Retina generation from missing originals, SVG transformations, custom Resize subclasses, arbitrary transformation chains, and Flynt's separate on-demand generation mode are not supported. Filters applied only during template rendering do not carry over to the image request.
+The resizing integration requires allow_url_fopen and REST API access. Forced resizing, Retina generation from missing originals, SVG transformations, custom Resize subclasses, arbitrary transformation chains, and Flynt's separate on-demand generation mode are not supported. Filters applied only during template rendering do not carry over to the image request.
 
 Changing the source configuration or WordPress authentication keys invalidates signed URLs; refresh cached HTML afterwards.
 
@@ -77,6 +90,10 @@ Disable the proxy before moving WordPress or its content directory.
 == Remote requests ==
 
 When enabled, the plugin requests missing media from your configured source site. Requests include the file path and any Basic Auth credentials you provide. Visitor cookies and authorization headers are not forwarded. No developer-operated service is used.
+
+== Want to contribute? ==
+
+Visit the [GitHub repository](https://github.com/timohubois/ask-the-origin-remote-media-proxy/) to report issues or contribute.
 
 == Changelog ==
 
