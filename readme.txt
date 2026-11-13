@@ -44,6 +44,10 @@ The source must use a different hostname and matching uploads paths relative to 
 
 **nginx, Caddy or other layouts:** configure the server to route missing upload requests to WordPress's front controller instead of returning a static 404. Preserve upload security restrictions.
 
+== Screenshots ==
+
+1. Configure the origin site, optional HTTP Basic Auth, and proxy status under Settings > Media.
+
 == Frequently Asked Questions ==
 
 = Does this copy or synchronize my Media Library? =
