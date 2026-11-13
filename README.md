@@ -46,7 +46,7 @@ On Multisite, the status and toggle apply only to the current site, whether the 
 
 Existing destination files are used first, then fresh cached files, then media retrieved from the source. The plugin does not copy content, synchronize uploads or import Media Library records. Copy the site's content separately when preparing a local or staging site.
 
-The plugin supports [Timber](https://upstatement.com/timber/) 1 and 2 resizing, including Twig's resize filter and [Flynt](https://flyntwp.com/)'s normal `resizeDynamic` calls. Forced resizing, Retina generation from missing originals, SVG transformations, custom Resize subclasses, arbitrary transformation chains, and Flynt's separate on-demand generation mode are not supported. PHP readers that require a physical file in uploads may not work; general filesystem access and image editing are not covered.
+The plugin supports [Timber](https://github.com/timber/timber) 1 and 2 resizing, including Twig's resize filter and [Flynt](https://github.com/flyntwp/flynt)'s normal `resizeDynamic` calls. Forced resizing, Retina generation from missing originals, SVG transformations, custom Resize subclasses, arbitrary transformation chains, and Flynt's separate on-demand generation mode are not supported. PHP readers that require a physical file in uploads may not work; general filesystem access and image editing are not covered.
 
 See the [listing FAQ](readme.txt) for details of cache behavior, resizing, credentials and removal.
 
