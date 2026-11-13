@@ -23,7 +23,7 @@ Configure the source and optional HTTP Basic Auth under **Settings > Media**. No
 * Show a native Media toolbar menu with a per-site Enabled/Disabled toggle and Settings shortcut for users who can manage settings.
 * Connect to sources protected by HTTP Basic Auth.
 * Serve missing uploads through compatible PHP attachment readers.
-* Support [Timber](https://upstatement.com/timber/) 1 and 2 resizing, including Twig's resize filter and [Flynt](https://flyntwp.com/)'s normal resizeDynamic calls, subject to the compatibility limits below.
+* Support [Timber](https://github.com/timber/timber) 1 and 2 resizing, including Twig's resize filter and [Flynt](https://github.com/flyntwp/flynt)'s normal resizeDynamic calls, subject to the compatibility limits below.
 * Configure missing-upload routing automatically on supported Apache layouts.
 * Use per-site settings on Multisite or supply configuration in code.
 
