@@ -156,7 +156,7 @@ final class AdminBar
             . '" hidden><input type="hidden" name="action" value="' . esc_attr(self::TOGGLE_ACTION) . '">'
             . '<input type="hidden" name="site_id" value="' . esc_attr((string) get_current_blog_id()) . '">'
             . '<input type="hidden" name="enabled" value="' . esc_attr($enabled ? '1' : '0') . '">'
-            . wp_nonce_field(self::TOGGLE_ACTION . '_' . get_current_blog_id(), '_wpnonce', true, false)
+            . wp_nonce_field(self::TOGGLE_ACTION . '_' . get_current_blog_id(), 'ask_the_origin_nonce', true, false)
             . '</form>';
     }
 
@@ -178,7 +178,7 @@ final class AdminBar
                 'response' => 403,
             ]);
         }
-        check_admin_referer(self::TOGGLE_ACTION . '_' . get_current_blog_id());
+        check_admin_referer(self::TOGGLE_ACTION . '_' . get_current_blog_id(), 'ask_the_origin_nonce');
         // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Exact allowlist below.
         $enabled = isset($_POST['enabled']) && is_string($_POST['enabled']) ? wp_unslash($_POST['enabled']) : null;
         // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Exact current-site match below.
