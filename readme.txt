@@ -3,7 +3,7 @@ Contributors: timohubois
 Tags: uploads, development, media, proxy
 Requires at least: 7.0
 Tested up to: 7.1
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 Requires PHP: 8.3
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -132,6 +132,9 @@ When enabled, the plugin requests missing media from your configured source site
 Report issues or contribute on [GitHub](https://github.com/timohubois/ask-the-origin-remote-media-proxy/).
 
 == Changelog ==
+
+= 1.1.2 =
+* Fix a toolbar nonce field collision that prevented native Classic Editor autosaves for users who can manage settings.
 
 = 1.1.1 =
 * Fix the Media toolbar icon and its alignment on WordPress 7.2 while keeping compatibility with older supported WordPress versions.

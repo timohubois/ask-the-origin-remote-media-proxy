@@ -202,8 +202,13 @@ try {
             str_contains($statusRow->meta['html'], 'method="post"')
             && str_contains($statusRow->meta['html'], 'name="enabled" value="' . ($enabled ? '0' : '1') . '"')
             && str_contains($statusRow->meta['html'], 'name="site_id" value="' . get_current_blog_id() . '"')
-            && str_contains($statusRow->meta['html'], 'name="_wpnonce"'),
+            && str_contains($statusRow->meta['html'], 'id="ask_the_origin_nonce" name="ask_the_origin_nonce"'),
             'the toggle uses a nonce-protected POST form bound to this site and an explicit desired state'
+        );
+        $verify(
+            !str_contains($statusRow->meta['html'], 'id="_wpnonce"')
+            && !str_contains($statusRow->meta['html'], 'name="_wpnonce"'),
+            'the toolbar nonce does not collide with the Classic Editor post nonce used by native autosave'
         );
         $settings = $adminBar->get_node('ask-the-origin-settings');
         $settingsUrl = esc_url(admin_url('options-media.php#ask_the_origin_enabled'));
@@ -287,7 +292,8 @@ try {
     $body = [
         'site_id' => (string) get_current_blog_id(),
         'enabled' => '1',
-        '_wpnonce' => wp_create_nonce('ask_the_origin_toggle_' . get_current_blog_id()),
+        'ask_the_origin_nonce' => wp_create_nonce('ask_the_origin_toggle_' . get_current_blog_id()),
+        '_wpnonce' => 'unrelated-core-nonce',
         '_wp_http_referer' => admin_url('options-media.php'),
     ];
     $valid = ['user' => $userIds['administrator'], 'method' => 'POST', 'body' => $body];
@@ -295,8 +301,19 @@ try {
         'GET requests' => [array_replace($valid, ['method' => 'GET']), 405],
         'unauthorized users' => [array_replace($valid, ['user' => $userIds['author']]), 403],
         'anonymous users' => [array_replace($valid, ['user' => 0]), 403],
-        'missing nonces' => [array_replace($valid, ['body' => array_diff_key($body, ['_wpnonce' => true])]), 403],
-        'invalid nonces' => [array_replace($valid, ['body' => array_replace($body, ['_wpnonce' => 'invalid'])]), 403],
+        'missing nonces' => [array_replace($valid, ['body' => array_diff_key($body, [
+            'ask_the_origin_nonce' => true,
+        ])]), 403],
+        'invalid nonces' => [array_replace($valid, ['body' => array_replace($body, [
+            'ask_the_origin_nonce' => 'invalid',
+        ])]), 403],
+        'nonces in the core field only' => [array_replace($valid, ['body' => array_replace(
+            array_diff_key($body, ['ask_the_origin_nonce' => true]),
+            ['_wpnonce' => $body['ask_the_origin_nonce']]
+        )]), 403],
+        'another site nonce' => [array_replace($valid, ['body' => array_replace($body, [
+            'ask_the_origin_nonce' => wp_create_nonce('ask_the_origin_toggle_999999'),
+        ])]), 403],
         'invalid states' => [array_replace($valid, ['body' => array_replace($body, ['enabled' => 'yes'])]), 400],
         'another site' => [array_replace($valid, ['body' => array_replace($body, ['site_id' => '999999'])]), 400],
         'constant-controlled status' => [array_replace($valid, ['config' => 'constant']), 409],
