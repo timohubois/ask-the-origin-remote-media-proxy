@@ -20,27 +20,23 @@ Configure the source and optional HTTP Basic Auth under **Settings > Media**. No
 
 **Features**
 
-* Use remote media without copying the uploads library.
-* Keep existing local files and retrieve only missing uploads.
 * Connect to sources protected by HTTP Basic Auth.
-* Support Timber 1 and 2 resizing and Flynt's normal resizeDynamic calls, subject to the compatibility limits below.
+* Integrate with Timber 1 and 2 resize filters and Flynt's `resizeDynamic` calls.
 * Enable or disable the proxy through a native Media toolbar menu, available to users who can manage settings.
 * Use per-site settings on Multisite or supply configuration in code.
 
 **Before you start**
 
-The source must use a different hostname and matching uploads paths. Protect your local or staging site separately: authentication on the source does not restrict visitors to your site.
+The source must use a different hostname and matching uploads paths relative to each site's base URL. Different single-site, Multisite or CDN upload layouts cannot be mapped.
 
-Review the installation requirements and compatibility limits before enabling the proxy.
+**Protect your local or staging site separately.** Authentication on the source does not restrict visitors to your site.
 
 == Installation ==
 
-1. Under **Plugins > Add New**, search for **Ask the Origin – Remote Media Proxy**, install it and activate it. Alternatively, upload the plugin folder to /wp-content/plugins/ask-the-origin-remote-media-proxy/. Composer is not required.
-2. Review the routing requirements below and protect your local or staging site as needed. Configure manual server routing if required.
+1. Under **Plugins > Add New**, search for **Ask the Origin – Remote Media Proxy**, install it and activate it. Alternatively, upload the plugin folder to /wp-content/plugins/ask-the-origin-remote-media-proxy/.
+2. Check the server-routing requirements below before enabling the proxy.
 3. In **Settings > Media**, set **Remote site URL** to the source site's base URL and enter any required HTTP Basic Auth credentials.
 4. Enable the proxy and save changes, then check a page with missing media.
-
-The source must use matching uploads paths relative to its site base. The plugin does not translate different single-site, Multisite or CDN upload layouts.
 
 **Apache:** the plugin manages a marked block in `WP_CONTENT_DIR/.htaccess`. This requires `mod_rewrite`, a writable content directory, and uploads within the content directory and its public URL path.
 
@@ -58,7 +54,7 @@ If you need the source site's pages, posts and Media Library entries, copy that 
 
 = Where are files cached? =
 
-The plugin uses WordPress's temporary directory, respecting `WP_TEMP_DIR`. Storage must be writable and outside known web roots. Local files are used first, then cached files, then remote downloads.
+Files are cached in WordPress's temporary directory, which must be writable and outside the public web root. Use `WP_TEMP_DIR` to select a different directory if needed. Local files are used first, then cached files, then remote downloads.
 
 Cached files are fresh for five minutes. Expiration does not delete them, and there is no automatic cache cleanup. There is no download-size limit; large files can fill temporary storage. The plugin is intended for images and modest-sized files, not large video delivery.
 
@@ -66,7 +62,7 @@ If the source is unavailable, local files and fresh cached files still work. Exp
 
 = Does it work with Timber and Flynt? =
 
-The plugin integrates with [Timber](https://github.com/timber/timber) 1 and 2, including Twig's resize filter and [Flynt](https://github.com/flyntwp/flynt)'s normal resizeDynamic calls.
+The plugin integrates with [Timber](https://github.com/timber/timber) 1 and 2, including Twig's `resize` filter, and [Flynt](https://github.com/flyntwp/flynt)'s `resizeDynamic` calls.
 
 When the local original and derivative are missing, supported resizes return signed image URLs. The image request retrieves the remote derivative or, only after a remote 404, downloads the original and resizes it with Timber. Existing local files retain native behavior.
 
@@ -86,7 +82,7 @@ Use HTTPS and trust the configured source. Saved passwords are encrypted using W
 
 Administrators with access to Media settings can inspect the saved password. Code-supplied passwords are not stored or displayed.
 
-**Protect the destination site separately.** Source Basic Auth does not restrict destination visitors. The plugin follows WordPress's allowed file types, but does not sanitize SVG content if SVG uploads are enabled.
+The plugin follows WordPress's allowed file types, but does not sanitize SVG content if SVG uploads are enabled.
 
 = Can I configure it in code? =
 
@@ -119,7 +115,7 @@ See the [configuration examples and details](https://github.com/timohubois/ask-t
 
 Disabling or deactivating removes the plugin's Apache directives and retains settings. Uninstalling also removes settings, never uploads or attachment data.
 
-Cached files are left for host or administrator cleanup. Routing cleanup failures are reported for retry.
+Cached files are left for host or administrator cleanup. If Apache rule cleanup fails, correct the reported `.htaccess` problem and retry disabling, deactivating or uninstalling the plugin.
 
 Disable the proxy before moving WordPress or its content directory.
 
@@ -138,6 +134,6 @@ Report issues or contribute on [GitHub](https://github.com/timohubois/ask-the-or
 == Changelog ==
 
 = 1.1.1 =
-* Use the native WordPress 7.2 Media toolbar SVG, with correct alignment and a Dashicon fallback on older WordPress versions.
+* Fix the Media toolbar icon and its alignment on WordPress 7.2 while keeping compatibility with older supported WordPress versions.
 
 See [earlier releases](https://github.com/timohubois/ask-the-origin-remote-media-proxy/releases) for older changes.
