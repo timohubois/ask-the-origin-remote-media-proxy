@@ -34,7 +34,7 @@ With the plugin active in a disposable WordPress installation (single-site or Mu
 wp eval-file /absolute/path/to/checkout/tests/admin-bar.php
 ```
 
-One shared set of temporary users covers capability grants and denials, both status values, the native Media icon, tooltip matching the plain dropdown status, accessible site-specific labels, dropdown labels and colors, Settings link, untouched native menus and code-controlled read-only states. Timber is not required.
+One shared set of temporary users covers capability grants and denials, both status values, the native Media SVG on WordPress 7.2+ and Dashicon fallback on older versions, tooltip matching the plain dropdown status, accessible site-specific labels, dropdown labels and colors, Settings link, untouched native menus and code-controlled read-only states. Timber is not required.
 
 Isolated CLI-subprocess requests exercise the real POST handler, including normal redirects. They reject invalid methods, permissions, nonces, states, cross-site payloads and locked configuration; verify enable/disable, repeated requests and source-URL-only filters; and preserve opaque credentials and unrelated settings. Prevented or altered saves fail safely, and every request must restore the Settings API sanitizer.
 

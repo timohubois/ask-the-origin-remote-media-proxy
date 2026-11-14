@@ -33,7 +33,7 @@ Disable the proxy before moving WordPress or its content directory.
 
 ## Usage and compatibility
 
-While the plugin is active, users with the `manage_options` capability (administrators by default) see a standalone native Media icon in the WordPress toolbar, even when the proxy is disabled. The icon keeps the native toolbar colors. Its tooltip matches the dropdown status text exactly—**Ask the Origin: Enabled** or **Ask the Origin: Disabled**—without the colored dot. Existing toolbar menus are unchanged, and a hidden toolbar is not forced to appear.
+While the plugin is active, users with the `manage_options` capability (administrators by default) see a standalone native Media icon in the WordPress toolbar, even when the proxy is disabled. WordPress 7.2+ supplies its native SVG Media icon; WordPress 7.0–7.1 keeps the Dashicon fallback. The icon keeps the native toolbar colors. Its tooltip matches the dropdown status text exactly—**Ask the Origin: Enabled** or **Ask the Origin: Disabled**—without the colored dot. Existing toolbar menus are unchanged, and a hidden toolbar is not forced to appear.
 
 The dropdown has two items:
 

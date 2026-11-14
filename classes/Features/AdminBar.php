@@ -32,12 +32,12 @@ final class AdminBar
         }
         wp_add_inline_style('admin-bar', '
             #wpadminbar #wp-toolbar #wp-admin-bar-ask-the-origin > .ab-item,
-            #wpadminbar #wp-toolbar #wp-admin-bar-ask-the-origin .ab-icon {
+            #wpadminbar #wp-toolbar #wp-admin-bar-ask-the-origin .ab-icon:first-child {
                 display: flex;
                 align-items: center;
                 justify-content: center;
             }
-            #wpadminbar #wp-toolbar #wp-admin-bar-ask-the-origin .ab-icon {
+            #wpadminbar #wp-toolbar #wp-admin-bar-ask-the-origin .ab-icon:first-child {
                 float: none;
                 margin: 0;
                 padding: 0;
@@ -107,6 +107,8 @@ final class AdminBar
         $settingsUrl = admin_url('options-media.php#ask_the_origin_enabled');
         $adminBar->add_node([
             'id' => 'ask-the-origin',
+            // WordPress 7.2+ renders the SVG and hides the empty Dashicon; older versions keep the fallback.
+            'icon' => 'core-admin/media',
             'title' => '<span class="ab-icon dashicons-admin-media" aria-hidden="true"></span>'
                 . '<span class="screen-reader-text">' . esc_html($label) . '</span>',
             'href' => esc_url($settingsUrl),

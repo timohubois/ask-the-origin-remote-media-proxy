@@ -175,6 +175,7 @@ try {
         );
         $verify(
             $node !== null && empty($node->parent)
+            && $node->icon === 'core-admin/media'
             && $node->title === '<span class="ab-icon dashicons-admin-media" aria-hidden="true"></span>'
                 . '<span class="screen-reader-text">' . esc_html($label) . '</span>',
             'the independent Media icon has no visible text and an explicit screen-reader status label'
@@ -223,6 +224,16 @@ try {
         ob_start();
         $adminBar->render();
         $html = ob_get_clean();
+        $iconLink = (string) strstr((string) strstr($html, "id='wp-admin-bar-ask-the-origin'"), '</a>', true);
+        $usesSvgIcon = function_exists('_wp_admin_bar_icon');
+        $verify(
+            str_contains($iconLink, '<span class="ab-icon dashicons-admin-media" aria-hidden="true"></span>')
+            && ($usesSvgIcon
+                ? str_contains($iconLink, '<span class="ab-icon svg-icon" aria-hidden="true">'
+                    . wp_get_icon('core-admin/media') . '</span>') && substr_count($iconLink, '<svg') === 1
+                : !str_contains($iconLink, '<svg')),
+            'WordPress renders its native Media SVG when supported and retains the legacy Dashicon fallback'
+        );
         $verify(
             str_contains($html, "title='" . esc_attr($statusText) . "'")
             && str_contains($html, "aria-label='" . esc_attr($label) . "'"),
@@ -235,7 +246,8 @@ try {
         $css = end($iconStyles);
         $verify(
             count($iconStyles) === count($previousStyles) + 1
-            && str_contains($css, '#wp-admin-bar-ask-the-origin .ab-icon')
+            && str_contains($css, '#wp-admin-bar-ask-the-origin .ab-icon:first-child')
+            && !preg_match('/\.ab-icon\s*\{\s*display:\s*flex/', $css)
             && str_contains($css, '.ask-the-origin-status-dot.is-enabled')
             && !preg_match(
                 '/\b(?:color|background(?:-color)?)\s*:/i',
