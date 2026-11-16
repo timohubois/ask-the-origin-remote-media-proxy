@@ -108,6 +108,7 @@ final class AdminBar
         $adminBar->add_node([
             'id' => 'ask-the-origin',
             // WordPress 7.2+ renders the SVG and hides the empty Dashicon; older versions keep the fallback.
+            // Remove the legacy Dashicon span once our minimum WordPress version is 7.2.
             'icon' => 'core-admin/media',
             'title' => '<span class="ab-icon dashicons-admin-media" aria-hidden="true"></span>'
                 . '<span class="screen-reader-text">' . esc_html($label) . '</span>',
