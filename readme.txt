@@ -21,7 +21,7 @@ Configure the source and optional HTTP Basic Auth under **Settings > Media**. No
 **Features**
 
 * Connect to sources protected by HTTP Basic Auth.
-* Integrate with Timber 1 and 2 resize filters and Flynt's `resizeDynamic` calls.
+* Integrate with [Timber](https://github.com/timber/timber) 1 and 2 resize filters and [Flynt](https://github.com/flyntwp/flynt)'s `resizeDynamic` calls.
 * Enable or disable the proxy through a native Media toolbar menu, available to users who can manage settings.
 * Use per-site settings on Multisite or supply configuration in code.
 
